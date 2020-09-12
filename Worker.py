@@ -129,74 +129,33 @@ class DBWorker:
         return {'success': len(failed_radios) == 0, 'updated': updated_radios, 'failed': failed_radios}
 
     # todo: add method to get all imports for today / or statistics num_requested vs num_added
-    # def get_yesterday_fip_tracks(self, stations=''):
-    #     failed_stations = []
-    #     res_list = []
-    #
-    #     if stations:
-    #         stations = stations if isinstance(stations, list) else [stations]
-    #     else:
-    #         db_session = self.create_db_session()
-    #         db_radios = db_session.query(dbm.Radio).filter(dbm.Radio.id.contains(config.fip_radio['id'])).all()
-    #         stations = [db_radio.id for db_radio in db_radios]
-    #         db_session.close()
-    #
-    #     cur_time = datetime.today()
-    #     # for req_time in range(0, 5, 4):
-    #     for req_time in range(0, 21, 4):
-    #
-    #         from_date = datetime(cur_time.year, cur_time.month, cur_time.day, req_time, 0) - timedelta(days=1)
-    #         till_date = from_date + timedelta(hours=4)
-    #         start_time = str(int(from_date.timestamp()))
-    #         end_time = str(int(till_date.timestamp()))
-    #
-    #         for station in stations:
-    #             genre = station.split('_')[-1].lower()
-    #             url = 'https://openapi.radiofrance.fr/v1/graphql'
-    #             json = {'query': '{ grid'
-    #                              f'(start: {start_time}, end: {end_time}, station: {station}) '
-    #                              '{ ... on TrackStep { start track  { mainArtists title albumTitle } } } }  ' }
-    #             headers = {'x-token': api_key}
-    #             res = post(url=url, json=json, headers=headers)
-    #
-    #             if res.status_code != 200:
-    #                 failed_stations.append(station)
-    #                 break
-    #
-    #             tracks = loads(res.text)['data']['grid']
-    #             for track in tracks:
-    #                 play_date = self.play_date
-    #                 play_time = track.get('start', '')
-    #                 if play_time:
-    #                     play_date = datetime.fromtimestamp(play_time).strftime('%d/%m/%Y %H:%M:%S')
-    #                 track = track['track']
-    #                 if track:
-    #                     artist = ','.join(track.get('mainArtists', '')).strip()
-    #                     title = track.get('title', '').strip()
-    #                     common_name = f'{artist} - {title}'
-    #                     res_list.append({'album_name': track.get('albumTitle', ''),
-    #                                      'common_name': common_name,
-    #                                      'artist': artist,
-    #                                      'title': title,
-    #                                      'play_date': play_date,
-    #                                      'radio_id': station,
-    #                                      'genre': genre})
-    #
-    #     return {'success': len(failed_stations) == 0, 'result': res_list, 'respond': ''}
 
-    def get_yesterday_fip_radio_tracks(self, radio_id):
+
+    def get_fip_radio_tracks(self, radio_id, play_date):
+        if isinstance(play_date, str) and '/' in play_date:
+            orig_date = play_date
+            day, month, year = play_date.split('/')[:3]             #06/09/2020
+            day, month, year = int(day), int(month), int(year)
+            play_date = datetime(year=year, month=month, day=day)
+
+        elif isinstance(play_date, datetime):
+            orig_date = play_date.strftime('%d/%m/%Y')
+            day = play_date.day
+            play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
+
+        else:
+            return {'success': False, 'result': 'incorrect date format', 'respond': ''}
+
+        from_date = play_date
         res_list = []
-        cur_time = datetime.today()
-        # for req_time in range(0, 5, 4):
-        for req_time in range(0, 21, 4):
 
-            from_date = datetime(cur_time.year, cur_time.month, cur_time.day, req_time, 0) - timedelta(days=1)
-            till_date = from_date + timedelta(hours=4)
+        while from_date.day == day:
             start_time = str(int(from_date.timestamp()))
-            end_time = str(int(till_date.timestamp()))
+            from_date += timedelta(hours=4)
+            end_time = str(int(from_date.timestamp()))
 
             genre = radio_id.split('_')[-1].lower()
-            url = 'https://openapi.radiofrance.fr/v1/graphql'
+            url = config.fip_radio['tracks_request_url']
             json = {'query': '{ grid'
                              f'(start: {start_time}, end: {end_time}, station: {radio_id}) '
                              '{ ... on TrackStep { start track  { mainArtists title albumTitle } } } }  ' }
@@ -227,13 +186,32 @@ class DBWorker:
 
         return {'success': True, 'result': res_list, 'respond': ''}
 
+
+
+    def get_yesterday_fip_radio_tracks(self, radio_id):
+        return self.get_fip_radio_tracks(radio_id, datetime.now() - timedelta(days=1))
+
+
     def get_djam_radio_tracks(self, play_date):
-        orig_date = play_date
-        day, month, year = play_date.split('/')             #06/09/2020
-        day, month, year = int(day), int(month), int(year)
-        play_date = datetime(year=year, month=month, day=day)
+        if isinstance(play_date, str) and '/' in play_date:
+            orig_date = play_date
+            day, month, year = play_date.split('/')[:3]             #06/09/2020
+            day, month, year = int(day), int(month), int(year)
+            play_date = datetime(year=year, month=month, day=day)
+
+        elif isinstance(play_date, datetime):
+            orig_date = play_date.strftime('%d/%m/%Y')
+            day = play_date.day
+            play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
+
+        else:
+            return {'success': False, 'result': 'incorrect date format', 'respond': ''}
+
         res_list = []
-        url = 'https://www.djamradio.com/actions/retrieve.php'
+        url = config.djam_radio['tracks_request_url']
+
+        # receives tracks 15 mins before and 15 mins after time in request
+        # so need to use time step 30 mins for requests, f.e. 9.00 -- 9.30 -- 10.00 ...
         while play_date.day == day:
             data = {'day': str(play_date.day),
                     'month': str(play_date.month),
@@ -262,41 +240,10 @@ class DBWorker:
             play_date += timedelta(minutes=30)
 
         return {'success': len(res_list) > 0, 'result': res_list, 'respond': ''}
-        # receive tracks 15 mins before and 15 mins after data
-        # so need to make requests every 30 mins 9.00 -- 9.30 -- 10.00 ...
 
     def get_yesterday_djam_radio_tracks(self):
-        # https://onlineradiobox.com/fr/ledjamra/playlist/?cs=ru.capricesoulneosoul&ajax=1&tz=-180	# today
-        # https://onlineradiobox.com/fr/ledjamra/playlist/1?cs=ru.capricesoulneosoul&ajax=1&tz=-180	# yesterday
+        return self.get_djam_radio_tracks(datetime.now() - timedelta(days=1))
 
-        # https://onlineradiobox.com/fr/ledjamra/playlist/  # today
-        # https://onlineradiobox.com/fr/ledjamra/playlist/1 # yesterday
-        # https://onlineradiobox.com/fr/ledjamra/playlist/2 # 2 days ago
-        # ... 6
-
-        res_list = []
-        djam_url = "https://onlineradiobox.com/fr/ledjamra/playlist/1?ajax=1&tz=-180"  # yesterday
-        res = get(djam_url)
-        if res.status_code != 200:
-            return {'success': False, 'result': res.status_code, 'respond': res.text}
-        res = loads(res.text)['data']
-        page = BeautifulSoup(res, 'html.parser')
-        trs = page.select('tr')
-        for tr in trs:
-            track = tr.text.strip()
-            if ':' in track and (not 'Ledjam' in track) and (not 'Cinema' in track) and (not 'MOVIE' in track):
-                play_time, full_name = track.split('\n')
-                full_name = full_name.split(' - ')
-                artist = full_name[0].strip()
-                title = '-'.join(full_name[1::]).strip()
-                common_name = f'{artist} - {title}'
-                res_list.append({'play_date': f'{self.play_date} {play_time}',
-                                 'common_name': common_name,
-                                 'artist': artist,
-                                 'title': title,
-                                 'radio_id': config.djam_radio['id'],
-                                 'genre': 'djam'})
-        return {'success': len(res_list) > 0, 'result': res_list, 'respond': ''}
 
 
     def get_yesterday_radio_tracks(self, RadioObj):
