@@ -5,6 +5,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from Worker import DBWorker
 from time import sleep
+from sqlalchemy.orm import sessionmaker
+from traceback import format_exc as traceback_format_exc
 
 
 Base = declarative_base()
@@ -17,7 +19,10 @@ class BaseExtended(Base):
 
     @classmethod
     def create_db_session(cls):
-        return cls.dbw.create_db_session()
+        Session = sessionmaker(bind=Base.metadata.bind)
+        session = Session()
+        return session
+
 
     @classmethod
     def get_all_objects(cls):
@@ -92,6 +97,21 @@ class Radio(BaseExtended):
     def update_radios_list(cls):
         return cls.dbw.update_radios_list_db(cls)
 
+    @classmethod
+    def update_radios_tracks(cls):
+        results = {}
+        radios = cls.get_all_objects()
+        for radio in radios:
+
+            try:
+                res = radio.import_tracks_to_db()
+                results[radio.id] = res
+
+            except:
+                results[radio.id] = {'success': False, 'result': traceback_format_exc()}
+
+        return results
+
     def import_tracks_to_db(self):
         return self.dbw.update_radio_tracks(self, Track, DBImport)
     
@@ -104,8 +124,26 @@ class Radio(BaseExtended):
     def get_youtube_links_for_tracks(self):
         pass
 
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+    def get_tracks_number(self):
+        db_session = self.create_db_session()
+        num = db_session.query(Track).filter(Track.radio_id == self.id).count()
+        db_session.close()
+        return num
+
+    def get_latest_import(self):
+        db_session = self.create_db_session()
+        db_import = db_session.query(DBImport).filter(DBImport.radio_id == self.id).all()[-1]
+        db_session.close()
+        return db_import.id.split('.')[0] if db_import else 'no imports'
+
+    @classmethod
+    def get_all_radios_json(cls):
+        radios = cls.get_all_objects()
+        js_objects = cls.to_json(radios)
+        for radio in radios:
+            js_objects[radio.id]['num_tracks'] = radio.get_tracks_number()
+            js_objects[radio.id]['latest_dbimport'] = radio.get_latest_import()
+        return js_objects
 
 class DBImport(BaseExtended):
     __tablename__ = 'dbImports'
