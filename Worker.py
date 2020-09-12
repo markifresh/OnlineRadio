@@ -233,8 +233,9 @@ class DBWorker:
                 res_list.append({
                                   'artist': artist,
                                   'title': title,
-                                  'play_time': f'{orig_date} {play_time}',
-                                  'common_name': common_name
+                                  'play_date': f'{orig_date} {play_time}',
+                                  'common_name': common_name,
+                                  'genre': 'djam'
                                  })
 
             play_date += timedelta(minutes=30)
@@ -259,6 +260,8 @@ class DBWorker:
             return {'success': False, 'result': 'Failed to get tracks', 'respond': traceback_format_exc()}
 
         return {'success': False, 'result': 'Radio ID not in condition list', 'respond': ''}
+
+
 
     # def get_all_tracks(self):
     #     tracks = []
@@ -300,7 +303,7 @@ class DBWorker:
             if track["common_name"] not in db_tracks:
                 res = self.commit_data(TrackModel(
                         common_name=track['common_name'],
-                        radio_id=track['radio_id'],
+                        radio_id=radioObject_id,
                         play_date=track['play_date'],
                         title=track['title'],
                         artist=track['artist'],
@@ -323,15 +326,6 @@ class DBWorker:
 
         return {'success': len(failed_tracks) == 0, 'updated': updated_tracks, 'failed': failed_tracks}
 
-    def update_radios_tracks(self, RadioModel):
-        results = {}
-        session = self.create_db_session()
-        radios = session.query(RadioModel).all()
-        session.close()
-        for radio in radios:
-            res = radio.import_tracks_to_db()
-            results[radio.id] = res
-        return results
 
     def get_artists(self):
         pass
