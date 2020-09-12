@@ -1,5 +1,6 @@
 import json
 from flask import Flask, request, redirect, g, render_template
+from DBModels import Track, Radio, DBImport, SpotifyExport
 import requests
 from urllib.parse import quote
 
@@ -98,6 +99,10 @@ def callback():
     # display_arr = [profile_data] + playlist_data["items"]
     # return render_template("index.html", sorted_array=display_arr)
 
+@app.route('/radios')
+def radios_list():
+    radios_json = Radio.get_all_radios_json()
+    return render_template('radios_list.html', radios=radios_json)
 
 if __name__ == "__main__":
     app.run(debug=True, port=PORT)
