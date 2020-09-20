@@ -1,13 +1,15 @@
-{% include 'header.html' %}
-{% include 'navbar_open.html' %}
-{% include 'navbar_search.html' %}
-{% include 'navbar_close.html' %}
+{% include 'parts/header.html' %}
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/navbar_search.html' %}
+{% include 'parts/navbar_close.html' %}
 
 <div class="container">
 
   {% for radio in radios %}
 
-<div class="card bg-light text-center">
+<div class="card bg-light text-center" id="card-{{ radio }}">
   <div class="card-header">
     <h3 class="text-muted">{{ radio | replace("_", " ")}}</h3>
   </div>

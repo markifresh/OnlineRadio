@@ -1,0 +1,47 @@
+ns = api.namespace('blog/categories', description='Operations related to blog categories')
+from flask_restplus import reqparse
+
+pagination_arguments = reqparse.RequestParser()
+pagination_arguments.add_argument('page', type=int, required=False)
+pagination_arguments.add_argument('per_page', type=int, required=False, choices=[5, 10, 20, 30, 40, 50], default=10)
+
+pagination_arguments.add_argument('multiple', type=int, action='append', required=True)
+pagination_arguments.add_argument('radio_ids', choices=[5, 10, 20, 30, 40, 50])
+
+
+@ns.route('/')
+class RadiosList(Resource):
+    
+    @api.expect(pagination_arguments, validate=True)
+    def get(self):
+        """Returns list of blog categories."""
+        return get_all_categories()
+
+    @api.response(204, 'Radios successfully updated.')
+    def patch(self):
+        # ids, if not ids, all
+        """Creates a new blog category."""
+        # return response from update function
+        create_category(request.json)
+        return None, 204
+
+
+@ns.route('/<int:id>')
+@api.response(404, 'Radio not found.')
+class Radio(Resource):
+
+    def get(self, id):
+        """Returns details of a category."""
+        return get_category(id)
+
+    @api.response(204, 'Category successfully updated.')
+    def put(self, id):
+        """Updates a blog category."""
+        update_category(id, request.json)
+        return None, 204
+
+    @api.response(204, 'Category successfully deleted.')
+    def delete(self, id):
+        """Deletes blog category."""
+        delete_category(id)
+        return None, 204

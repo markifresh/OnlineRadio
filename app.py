@@ -1,17 +1,49 @@
 import json
+import config
 from flask import Flask, request, redirect, g, render_template
-from DBModels import Track, Radio, DBImport, SpotifyExport
+from flask_sqlalchemy import SQLAlchemy
+# from flask_restplus import Api, Resource, fields
+from db_models import BaseExtended
+from db_models.dbimport_db import DBImport
+from db_models.track_db import Track
+from db_models.spotifyexport_db import SpotifyExport
+from db_models.radio_db import Radio
 import requests
 from urllib.parse import quote
+from blueprints import radios_page
+import blueprints
 
 import secret_data
 from requests import get
+
+environment_config = config.all_environments['development']
+
 # Authentication Steps, paramaters, and responses are defined at https://developer.spotify.com/web-api/authorization-guide/
 # Visit this url to see all the steps, parameters, and expected response.
 
 
-app = Flask(__name__)
 
+# https://towardsdatascience.com/working-with-apis-using-flask-flask-restplus-and-swagger-ui-7cf447deda7f
+# https://towardsdatascience.com/the-right-way-to-build-an-api-with-python-cd08ab285f8f
+# https://towardsdatascience.com/visualizing-data-with-roughviz-js-77b8f96331e9
+# https://towardsdatascience.com/building-a-weather-app-using-openweathermap-and-flask-ed7402239d83
+# https://towardsdatascience.com/creating-a-beautiful-web-api-in-python-6415a40789af
+# http://michal.karzynski.pl/blog/2016/06/19/building-beautiful-restful-apis-using-flask-swagger-ui-flask-restplus/
+
+app = Flask(__name__)
+app.register_blueprint(radios_page.radios_page)
+
+# api = Api(app,
+#           version='1.0',
+#           title='Sample Book API',
+#           description='A simple Book API',
+#           doc=environment_config["swagger-url"])
+
+# app.register_blueprint(simple_page, url_prefix='/pages') # register blueprint to other location
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{config.db_location}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 #  Client Keys
 CLIENT_ID = secret_data.spotify_api_id
 CLIENT_SECRET = secret_data.spotify_api_key
@@ -40,6 +72,10 @@ auth_query_parameters = {
     # "show_dialog": SHOW_DIALOG_str,
     "client_id": CLIENT_ID
 }
+
+# @appe.errorhandler(404)
+# def page_not_found(e):
+#     return render_template('pages/404.html')
 
 
 @app.route("/")
@@ -99,10 +135,12 @@ def callback():
     # display_arr = [profile_data] + playlist_data["items"]
     # return render_template("index.html", sorted_array=display_arr)
 
-@app.route('/radios')
-def radios_list():
-    radios_json = Radio.get_all_radios_json()
-    return render_template('radios_list.html', radios=radios_json)
+@app.route('/statistics')
+def statistics():
+    radios = Radio.get_all_objects()
+    radios_tracks_num = [{radio.name: radio.get_tracks_number()} for radio in radios]
+    return str(radios_tracks_num)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=PORT)
+    app.run(debug=environment_config['debug'],
+            port=environment_config['port'])

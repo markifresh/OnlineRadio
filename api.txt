@@ -1,0 +1,50 @@
+/api/radios
+	/get:
+		/		# get all radios
+	
+	/patch:
+		/		# update all radios
+
+/api/radios/<id>
+	/get:
+		/ 								# name, url + some extra infa
+		/tracks							# json tracks
+		/tracks/reviewed				# reviewed tracks	
+		/tracks/not_reviewed			# non reviewed tracks
+		
+		/tracks/num						# number of tracks
+		/tracks/num/reviewed			# num reviewed tracks	
+		/tracks/num/not_reviewed		# num of non reviewed tracks	
+		
+		/tracks/period/<dd-mm-yy_dd-mm-yy>						# tracks for specific period
+		/tracks/period/<dd-mm-yy_dd-mm-yy>/reviewed				# reviewed tracks for specific period
+		/tracks/period/<dd-mm-yy_dd-mm-yy>/not_reviewed			# not reviewed tracks for specific period
+			
+		/tracks/period/<dd-mm-yy_dd-mm-yy>/num					# num of tracks for specific period
+		/tracks/period/<dd-mm-yy_dd-mm-yy>/num/reviewed			# num of tracks for specifi period
+		/tracks/period/<dd-mm-yy_dd-mm-yy>/num/not_reviewed		# tracks for specific period
+		dsdsd
+		/imports									# json imports
+		/imports/num								# number of imports 
+		/imports/period/<dd-mm-yy_dd-mm-yy>			# imports for specific period
+		/imports/period/<dd-mm-yy_dd-mm-yy>/num		# imports num for specific period
+		
+		/exports									# json exports 
+		/exports/num								# number of exports
+		/exports/period/<dd-mm-yy_dd-mm-yy>			# exports for specific period
+		/exports/period/<dd-mm-yy_dd-mm-yy>/num		# exports num for specific period
+		
+	/patch
+		/				# update radio tracks with yesterday tracks
+		/dd-mm-yyyy		# update radio tracks with tracks of specific data
+	
+	/post
+		/sp_export		# export tracks to spotify
+
+
+
+############################################################		
+
+/api/dbimport/<id>
+	/get
+		/		# import_date, num_tracks_added, num_tracks_requested, radio_name

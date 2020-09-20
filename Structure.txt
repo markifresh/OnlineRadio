@@ -1,0 +1,257 @@
+project/
+├── app.py
+├── models
+│   ├── tracks.py
+│   ├── radios.py
+│   └── ...
+├── core
+│   ├── __init__.py
+│   ├── utils.py
+│   └── ...
+├── apiv1.py
+├── apiv2.py
+└── apis
+    ├── __init__.py
+    ├── radios_api.py
+    ├── tracks_api.py
+    ├── ...
+    └── namespaceX.py
+
+################## Flask config #####################
+from flask import Flask
+app = Flask(
+    __name__,
+    instance_relative_config=False,
+    template_folder="templates",
+    static_folder="static"
+)
+
+################ import route function ######################
+from flask import Flask
+from logic import square_of_number_plus_nine
+app = Flask(__name__)
+
+
+@app.route("/")
+def hello():
+    value = square_of_number_plus_nine(5)
+    return value
+
+############## Markup #########################
+from flask import Flask, Markup
+app = Flask(__name__)
+
+
+@app.route("/")
+def hello():
+    return Markup("<h1>Hello World!</h1>")
+
+############# Response ########################
+from flask import Flask, make_response
+app = Flask(__name__)
+
+@app.route("/")
+def hello():
+    headers = {"Content-Type": "application/json"}
+    return make_response('it worked!', 200, headers)
+
+
+api = Api(app,
+          version='10.5',
+          title='Flask Restplus Demo',
+          description='Demo to show various API parameters',
+          license='MIT',
+          contact='Jimit Dholakia',
+          contact_url='https://in.linkedin.com/in/jimit105',
+          doc = '/docs/',
+          prefix='/test'
+          )
+
+version → API Version (for Swagger Documentation)
+title → API title (for Swagger Documentation)
+description → API Description (for Swagger Documentation)
+license → Specify License for the API (for Swagger Documentation)
+license_url → Specify the License page URL (for Swagger Documentation)
+contact → Specify contact person (for Swagger Documentation)
+contact_email → Specify the email address of contact person (for Swagger Documentation)
+contact_url → Specify URL to contact person (for Swagger Documentation)
+doc → Specify the path for Swagger UI Documentation. Defaults to '/'
+prefix → Specify a prefix for all endpoints of the URL
+
+
+
+Models
+A model defines the structure/schema of the payload of a request or response. This includes the list of all fields and their types. I keep all my models in a separate folder ./src/models
+
+from flask_restplus import fields
+from server.instance import server
+
+book = server.api.model('Book', {
+    'id': fields.Integer(description='Id'),
+    'title': fields.String(required=True, min_length=1, max_length=200, description='Book title')
+})
+
+
+Resources
+A resource is a class whose methods are mapped to an API/URL endpoint. We use flask-restplus annotations to define the URL pattern for every such class. For every resources class, the method whose names match the HTTP methods (e.g. get, put) will handle the matching HTTP calls.
+
+By using the expect annotation, for every HTTP method we can specify the expected model of the payload body. Similarly, by using the marshal annotations, we can define the respective response payload model.
+
+I keep my resources in the ./src/resources folder. Let’s create a simple resource ./src/resources/book.py:
+
+from flask import Flask
+from flask_restplus import Api, Resource, fields
+from server.instance import server
+from models.book import book
+
+app, api = server.app, server.api
+
+# Let's just keep them in memory
+books_db = [
+    {"id": 0, "title": "War and Peace"},
+    {"id": 1, "title": "Python for Dummies"},
+]
+
+# This class will handle GET and POST to /books
+@api.route('/books')
+class BookList(Resource):
+    @api.marshal_list_with(book)
+    def get(self):
+        return books_db
+
+    # Ask flask_restplus to validate the incoming payload
+    @api.expect(book, validate=True)
+    @api.marshal_with(book)
+    def post(self):
+        # Generate new Id
+        api.payload["id"] = books_db[-1]["id"] + 1 if len(books_db) > 0 else 0
+        books_db.append(api.payload)
+        return api.payload
+
+# Handles GET and PUT to /books/:id
+# The path parameter will be supplied as a parameter to every method
+@api.route('/books/<int:id>')
+class Book(Resource):
+    # Utility method
+    def find_one(self, id):
+        return next((b for b in books_db if b["id"] == id), None)
+
+    @api.marshal_with(book)
+    def get(self, id):
+        match = self.find_one(id)
+        return match if match else ("Not found", 404)
+
+    @api.marshal_with(book)
+    def delete(self, id):
+        global books_db
+        match = self.find_one(id)
+        books_db = list(filter(lambda b: b["id"] != id, books_db))
+        return match
+
+    # Ask flask_restplus to validate the incoming payload
+    @api.expect(book, validate=True)
+    @api.marshal_with(book)
+    def put(self, id):
+        match = self.find_one(id)
+        if match != None:
+            match.update(api.payload)
+            match["id"] = id
+        return match
+
+
+sample-python-api/
+ │
+ ├── .python-version
+ ├── Pipfile
+ ├── Pipfile.lock
+ └── src
+     ├── environment
+     │   └── instance.py
+     ├── models
+     │   └── book.py
+     ├── resources
+     │   └── book.py
+     └── server
+         └── instance.py
+
+
+├── __init__.py
+├── controller.py
+├── controller_test.py
+├── interface.py
+├── interface_test.py
+├── model.py
+├── model_test.py
+├── schema.py
+├── schema_test.py
+├── service.py
+└── service_test.py
+
+project/
+├── app.py
+├── models
+│   ├── Tracks.py
+│   ├── Radios.py
+│   └── ...
+├── schemas (marshmellow etc.)
+│   ├── tracks.py
+│   ├── radios.py
+│   └── ...
+├── core
+│   ├── __init__.py
+│   ├── utils.py
+│   └── ...
+├── apiv1.py
+├── apiv2.py
+└── apis
+    ├── __init__.py
+    ├── radios_api.py
+    ├── tracks_api.py
+    ├── ...
+    └── namespaceX.py
+
+
+├── api                         #
+│   ├── blog                    #  Blog-related API directory
+│   │   ├── business.py         #
+│   │   ├── endpoints           #  API namespaces and REST methods
+│   │   │   ├── categories.py   #
+│   │   │   └── posts.py        #
+│   │   ├── parsers.py          #  Argument parsers
+│   │   └── serializers.py      #  Output serializers
+│   └── restplus.py             #  API bootstrap file
+├── app.py                      #  Application bootstrap file
+├── database                    #
+│   └── models.py               #  Definition of SQLAlchemy models
+├── db.sqlite                   #
+└── settings.py                 #  Global app settings
+
+
+def initialize_app(flask_app):
+    configure_app(flask_app)
+
+    blueprint = Blueprint('api', __name__, url_prefix='/api')
+    api.init_app(blueprint)
+    api.add_namespace(blog_posts_namespace)
+    api.add_namespace(blog_categories_namespace)
+    flask_app.register_blueprint(blueprint)
+
+    db.init_app(flask_app)
+
+
+
+
+from flask_restplus import reqparse
+
+pagination_arguments = reqparse.RequestParser()
+pagination_arguments.add_argument('page', type=int, required=False)
+pagination_arguments.add_argument('per_page', type=int, required=False,
+                                  choices=[5, 10, 20, 30, 40, 50], default=10)
+
+@ns.route('/')
+class PostsCollection(Resource):
+
+    @api.expect(pagination_arguments, validate=True)
+    def get(self):
+        ...
+app.config['RESTPLUS_VALIDATE'] = True
