@@ -1,0 +1,12 @@
+test.sqlite
+test2.sqlite
+__pycache__
+.idea
+.env
+api.txt
+apis.txt
+chromedriver.exe
+debug.log
+sqlite.log
+Structure.txt
+TestRest.txt
