@@ -1,0 +1,7 @@
+test.sqlite
+test2.sqlite
+__pycache__
+.idea
+Tutoriel Open API Radio France.gdoc
+.env
+sqlite.log
