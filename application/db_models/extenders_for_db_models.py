@@ -1,8 +1,14 @@
+from . import create_db
+from config import DevConfig
 from sqlalchemy.orm import query
 from sqlalchemy.ext.declarative import api
 from traceback import format_exc as traceback_format_exc
-from application.db_models import db_session, engine, Base
+# from application.db_models import db_session, engine
+from flask import current_app
+from sqlalchemy.ext.declarative import declarative_base
 
+default_config = DevConfig
+Base = declarative_base()
 
 class BaseExtended(Base):
     def __init__(self, session=''):
@@ -11,14 +17,18 @@ class BaseExtended(Base):
     unique_search_field = ''
     __abstract__ = True
 
-    Base.metadata.bind = engine
+    if getattr(current_app, 'session', ''):
+        engine = current_app.session.bind
+        session = current_app.session
+
+    # else:
+    #     session = create_db(DevConfig)()
+    #     engine = session.bind
 
     @classmethod
-    def set_session(cls, session=None):
-        if not session:
-            cls.session = db_session()
-        else:
-            cls.session = session
+    def set_session(cls, config_class, session=create_db):
+        cls.session = session(config_class)
+        cls.engine = cls.session.bind
         cls.query = cls.session.query
 
     @classmethod

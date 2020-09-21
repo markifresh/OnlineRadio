@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from pathlib import Path
 from os import getenv
+from logging import INFO, DEBUG
 
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
@@ -20,6 +21,8 @@ class ProdConfig(Config):
     TESTING = False
     DATABASE_URI = f'sqlite:///{getenv("PROD_DATABASE_URI")}'
     DATABASE_ECHO = False
+    DATABASE_LOG_LEVEL = INFO
+    DATABASE_LOG_FILE = 'prod_db_logs.log'
     PORT = 8080
     # SERVER_NAME = 'prodradio.localdomain'
     HOST = '0.0.0.0'
@@ -31,6 +34,8 @@ class DevConfig(Config):
     TESTING = True
     DATABASE_URI = f'sqlite:///{getenv("DEV_DATABASE_URI")}'
     DATABASE_ECHO = True
+    DATABASE_LOG_LEVEL = INFO
+    DATABASE_LOG_FILE = 'dev_db_logs.log'
     PORT = 5000
     # SERVER_NAME = 'devradio.localdomain'
     HOST = '127.0.0.1'
@@ -65,3 +70,6 @@ class OauthSpotifyConfig:
     SCOPE = "playlist-modify-public playlist-modify-private"
     CLIENT_ID = APIConfig.spotify_api_id
     CLIENT_KEY = APIConfig.spotify_api_key
+
+class DBConfig:
+    LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'

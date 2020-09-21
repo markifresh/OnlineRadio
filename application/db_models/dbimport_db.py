@@ -2,7 +2,6 @@ from application.db_models.extenders_for_db_models import BaseExtended
 from sqlalchemy import Column, Integer, String, Sequence, ForeignKey
 from sqlalchemy.orm import relationship
 
-
 class DBImport(BaseExtended):
     unique_search_field = 'import_date'
 

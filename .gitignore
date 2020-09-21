@@ -11,3 +11,5 @@ sqlite.log
 Structure.txt
 TestRest.txt
 application/__pycache__
+dev_db_logs.log
+prod_db_logs.log

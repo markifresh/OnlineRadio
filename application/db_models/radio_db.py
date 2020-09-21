@@ -1,3 +1,7 @@
+from .dbimport_db import DBImport
+from .track_db import Track
+from .spotifyexport_db import SpotifyExport
+
 from config import RadioConfig, APIConfig
 from json import loads
 from requests import post as request_post
@@ -220,9 +224,9 @@ class Radio(BaseExtended, RadioExternalFunctions):
     id = Column(Integer, primary_key=True)
     name = Column(String(20), Sequence('radio_name_seq'), unique=True)  # id from api
     url = Column(String(80))
-    db_imports = relationship('DBImport', lazy=True)
-    spotify_exports = relationship('SpotifyExport', lazy=True)
-    tracks = relationship('Track', lazy=True)
+    db_imports = relationship(DBImport, lazy=True)
+    spotify_exports = relationship(SpotifyExport, lazy=True)
+    tracks = relationship(Track, lazy=True)
 
     def __repr__(self):
         return f"<Radio({self.name})>"
@@ -271,7 +275,6 @@ class Radio(BaseExtended, RadioExternalFunctions):
         return results
 
     def update_radio_tracks(self):
-        from application.db_models import DBImport, Track
         failed_tracks = []
         updated_tracks = []
         already_added_tracks = []
@@ -332,7 +335,6 @@ class Radio(BaseExtended, RadioExternalFunctions):
 
 
     def get_latest_import(self):
-        from application.db_models import DBImport
         db_import = self.session.query(DBImport).filter(DBImport.radio_name == self.name).\
                     order_by(DBImport.import_date.desc()).first()
         self.session.close()
@@ -350,25 +352,20 @@ class Radio(BaseExtended, RadioExternalFunctions):
         return js_objects
 
     def get_tracks_num_per_radio(self):
-        from application.db_models import Track
         return Track.get_num_tracks_per_radio(self.name)
 
     @classmethod
     def get_tracks_num_per_radios(cls):
-        from application.db_models import Track
         return Track.get_num_tracks_per_radios()
 
     def get_tracks(self):
-        from application.db_models import Track
         return Track.get_tracks_per_radio(self.name)
 
 
     # format start_date='18-09-2020', end_date='19-09-2020'
     @classmethod
     def get_tracks_num_per_radios_per_date(cls, radio='', start_date='', end_date=''):
-        from application.db_models import Track
         return Track.get_num_tracks_per_radio_per_date(radio, start_date, end_date)
 
     def get_tracks_num_per_radio_per_date(self, start_date='', end_date=''):
-        from application.db_models import Track
         return Track.get_num_tracks_per_radio_per_date(self.name, start_date, end_date)

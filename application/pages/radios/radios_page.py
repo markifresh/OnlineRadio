@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template
 from application.db_models.radio_db import Radio
+from flask import current_app as app
+# from application.apis.radios.root import list_radios
 
-radios_page = Blueprint('radios', __name__,
-                        template_folder='templates')
+radios = Blueprint('radios', __name__, template_folder='templates', static_folder='static')
 
 # For each blueprint can be separate folder with it's resources
 # they can be easily get like this:
@@ -12,7 +13,7 @@ radios_page = Blueprint('radios', __name__,
 # admin = Blueprint('admin', __name__, static_folder='static')
 # url_for('admin.static', filename='style.css')
 
-@radios_page.route('/radios')
+@radios.route('/radios')
 def radios_list():
     Radio_model = Radio()
     radios_json = Radio_model.export_all_radios_data_to_json()
