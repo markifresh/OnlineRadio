@@ -13,6 +13,8 @@ flask = "*"
 selenium = "*"
 flask-sqlalchemy = "*"
 flask-restplus = "*"
+python-dotenv = "*"
+flask-session = "*"
 
 [requires]
 python_version = "3.7"
