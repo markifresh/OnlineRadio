@@ -1,5 +1,7 @@
 test.sqlite
 test2.sqlite
+test_2.sqlite
+test_3.sqlite
 __pycache__
 .idea
 .env
