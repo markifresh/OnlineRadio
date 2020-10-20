@@ -1,35 +1,24 @@
-from . import create_db
-from config import DevConfig
+from . import set_session
 from sqlalchemy.orm import query
 from sqlalchemy.ext.declarative import api
 from traceback import format_exc as traceback_format_exc
 # from application.db_models import db_session, engine
-from flask import current_app
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql.elements import BinaryExpression
 
-default_config = DevConfig
+
 Base = declarative_base()
 
 class BaseExtended(Base):
-    def __init__(self, session=''):
-        self.set_session(session)
 
     unique_search_field = ''
     __abstract__ = True
 
-    if getattr(current_app, 'session', ''):
-        engine = current_app.session.bind
-        session = current_app.session
+    session = set_session()
 
-    # else:
-    #     session = create_db(DevConfig)()
-    #     engine = session.bind
+    engine = session.bind
+    query = session.query
 
-    @classmethod
-    def set_session(cls, config_class, session=create_db):
-        cls.session = session(config_class)
-        cls.engine = cls.session.bind
-        cls.query = cls.session.query
 
     @classmethod
     def all(cls):
@@ -93,7 +82,10 @@ class BaseExtended(Base):
         if isinstance(data, list) or isinstance(data, tuple):
             cls.session.add_all(data)
         else:
-            cls.session.add(data)
+            if isinstance(data, dict):
+                cls.session.add(cls(**data))
+            else:
+                cls.session.add(data)
 
         try:
             cls.session.commit()
@@ -105,6 +97,94 @@ class BaseExtended(Base):
         cls.session.close()
         return result
 
-    @staticmethod
-    def create_tables():
-        Base.metadata.create_all(engine)
+    # @classmethod
+    # def check_prepare_date_input(cls, start_date, end_date):
+    #     if not (isinstance(start_date, str) == isinstance(end_date, str) == True):
+    #         return False, 'Wrong Type format'
+    #
+    #     if not ('-' in start_date and '-' in end_date):
+    #         return False, 'Wrong Format'
+    #
+    #     start_day = int(start_date.split('-')[0])
+    #     end_day = int(end_date.split('-')[0])
+    #     print(start_day, end_day)
+    #     if end_day - start_day < 1:
+    #         return False, 'difference in days less than 1'
+    #     start_date = start_date.replace('-', '/')
+    #     end_date = end_date.replace('-', '/')
+    #
+    #     return True, {'start_date': start_date, 'end_date': end_date}
+
+    @classmethod
+    def limit_objects(cls, query_res, start_id='', end_id=''):
+        start_id = 0 if not start_id else start_id
+        end_id = 50 if not end_id else end_id
+        return query_res.offset(start_id).limit(end_id)
+
+
+    @classmethod
+    def query_objects(cls, q_selector='', start_date='', end_date='',  q_filter='', between_argument=''):
+        res = cls.query(cls) if not q_selector else q_selector
+
+        if isinstance(q_filter, BinaryExpression):
+            res = res.filter(q_filter)
+
+        if start_date and end_date:
+            res = res.filter(getattr(cls, between_argument).between(start_date, end_date))
+
+        return res
+
+    @classmethod
+    def query_objects_num(cls, start_date='', end_date='', q_filter='', between_argument=''):
+        """ Returns number of objects for specific filter and date range
+        start_date (datetime): from this date
+        end_date (datetime): till this date
+
+        between_argument (str): column name to select 'date_range' from
+        (for example: 'db_import_date' - will apply: .filter(cls.db_import_date.between(start, end)))
+
+        q_filter (BinaryExpression): query condition
+        (for example: cls.radio_name == radio_name)
+
+        """
+        res = cls.query(cls.id)
+
+
+        if isinstance(q_filter, BinaryExpression):
+            res = res.filter(q_filter)
+
+        if start_date and end_date:
+            res = res.filter(getattr(cls, between_argument).between(start_date, end_date))
+
+        return {'number': res.count()}
+
+    @classmethod
+    def query_objects_num_all_sorted(cls, start_date='', end_date='', between_argument='', sort_argument='',
+                                     init_dict={}, q_filter=''):
+        res = init_dict
+        sorting_objects = cls.query(getattr(cls, sort_argument))
+
+        if isinstance(q_filter, BinaryExpression):
+            sorting_objects = sorting_objects.filter(q_filter)
+
+        if start_date and end_date:
+            sorting_objects = sorting_objects.filter(getattr(cls, between_argument).between(start_date, end_date))
+
+        sorting_objects = [sort_obj[0] for sort_obj in sorting_objects.all()]
+        for sort_obj in sorting_objects:
+            res[sort_obj] = res[sort_obj] + 1 if sort_obj in res.keys() else 1
+
+        return res
+
+    @classmethod
+    def create_tables(cls):
+        cls.metadata.create_all(cls.engine)
+
+    @classmethod
+    def drop_table(cls):
+        cls.__table__.drop(cls.engine)
+
+    @classmethod
+    def rebuild_table(cls):
+        cls.drop_table()
+        cls.create_tables()

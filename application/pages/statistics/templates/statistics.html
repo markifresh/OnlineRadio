@@ -1,0 +1,33 @@
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_close.html' %}
+<script type="text/javascript" src="{{ url_for('.static', filename='js/rough.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/statistics.css') }}">
+
+<div id="graphics">
+
+    <div id="importsNum" >
+        <h3> Number of imports per radio </h3>
+    </div>
+    <hr>
+    <div id="tracksNum">
+        <h3> Number of tracks per radio </h3>
+    </div>
+    <hr>
+    <div id="tracksReviewedNot" >
+        <h3> Number of not reviewed tracks per radio </h3>
+    </div>
+    <hr>
+    <div id="tracksReviewed" >
+        <h3> Number of reviewed tracks per radio </h3>
+    </div>
+
+</div>
+
+<script type="text/javascript" src="{{ url_for('.static', filename='js/statistics.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

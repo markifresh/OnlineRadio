@@ -1,8 +1,14 @@
 from flask import Flask, _app_ctx_stack
 # from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import scoped_session
-from application.apis.auth import oauth
+from flask_restx import Api
+from flask_restx import fields
+from config import DevConfig, ProdConfig
 
+# import werkzeug
+# werkzeug.cached_property = werkzeug.utils.cached_property
+
+# from flask_restplus import Api
 
 # Globally accessible libraries
 #db = SQLAlchemy()
@@ -12,11 +18,21 @@ def create_app(confConfClass):
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object(confConfClass)
 
+    api = Api(app,
+              version='1.0',
+              title='OnlineRadio API',
+              description='Read and Try this API',
+              # doc='/api/docs/'
+              )
+    #
+    # app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
+
     # Initialize Plugins
     #db.init_app(app)
     from application.db_models import create_db
     db_session = create_db(confConfClass)
-    app.session = scoped_session(db_session, scopefunc=_app_ctx_stack.__ident_func__)
+    app.db_session = scoped_session(db_session, scopefunc=_app_ctx_stack.__ident_func__)
+
 
     with app.app_context():
         # # Include our Routes
@@ -25,14 +41,89 @@ def create_app(confConfClass):
         # # Register Blueprints
         # app.register_blueprint(auth.auth_bp)
         # app.register_blueprint(admin.admin_bp)
+
+        # from .apis.api_radios import radios_api
+        # from .apis.tracks_api import tracks_api
+        # # app.register_blueprint(radios_api, url_prefix='/api/radios')
+        # app.register_blueprint(tracks_api)
+
+        
+        
+        
+        from .pages.welcome import welcome_page
+        app.register_blueprint(welcome_page.welcome, url_prefix='/welcome')
+        
         from .pages.radios import radios_page
-        from application.apis.auth import oauth
+        app.register_blueprint(radios_page.radios, url_prefix='/radios')
 
-        app.register_blueprint(radios_page.radios)
-        app.register_blueprint(oauth.oauth_api)
+        from .pages.oauth_page import oauth_page
+        app.register_blueprint(oauth_page, url_prefix='/oauth')
+        
+        from application.pages.statistics.statistics_page import statistics
+        app.register_blueprint(statistics, url_prefix='/statistics')
 
-        from .db_models.radio_db import Radio
-        print(Radio.all())
+        from application.pages.tracks.tracks_page import tracks
+        app.register_blueprint(tracks, url_prefix='/tracks')
+
+        from application.pages.artists.artists_page import artists
+        app.register_blueprint(artists, url_prefix='/artists')
+
+        # tracks = api.model('tracks', {
+        #     'artist': fields.String(required=True, description='title of a track'),
+        #     'title': fields.String(required=True, description='artist of a track'),
+        # })
+
+        from application.schema_models.tracks_schemas import tracks_schemas
+        api.add_namespace(tracks_schemas)
+
+        from application.schema_models.dbimports_schemas import di_schemas
+        api.add_namespace(di_schemas)
+
+        from application.schema_models.radios_schemas import radios_schemas
+        api.add_namespace(radios_schemas)
+
+        from application.schema_models.spotifyexports_schemas import se_schemas
+        api.add_namespace(se_schemas)
+
+        from application.schema_models.tracks_schemas import tracks_schemas
+        api.add_namespace(tracks_schemas)
+
+
+        from application.apis.radios_api import radios_api
+        api.add_namespace(radios_api, '/api/radios')
+
+        from application.apis.tracks_api import tracks_api
+        api.add_namespace(tracks_api, '/api/tracks')
+
+        from application.apis.dbimports_api import dbimports_api
+        api.add_namespace(dbimports_api, '/api/dbimports')
+
+        from application.apis.spotifyexports_api import spotifyexports_api
+        api.add_namespace(spotifyexports_api, '/api/se')
+
+        from application.apis.radio_tracks_api import radio_tracks_api
+        api.add_namespace(radio_tracks_api, '/api/radio_tracks')
+
+        from application.apis.radio_imports import radio_imports_api
+        api.add_namespace(radio_imports_api, '/api/radio_imports')
+
+        from application.apis.radio_exports import radio_exports_api
+        api.add_namespace(radio_exports_api, '/api/radio_exports')
+
+        # from application.apis import Test2
+        # app.register_blueprint(Test2.radios_api2)
+
+        # from application.apis.Test import api as meals_api
+        # api.add_namespace(meals_api, '/test')
+
+
+        # api.init_app(app)
         # from .db_models import Radio
         # Radio.set_session(app.session)
+
+        # app = Api(app=app,
+        #           version="1.0",
+        #           title="Name Recorder",
+        #           description="Manage names of various users of the application")
+
         return app

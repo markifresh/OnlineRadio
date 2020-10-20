@@ -1,0 +1,9 @@
+body{
+background-image: url('../BG.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.bg-light{
+background-color:#1d2122e6 !important;
+}

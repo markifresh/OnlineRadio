@@ -1,0 +1,48 @@
+/api/tracks
+---PATCH---
+	/<common_name>			# update import
+
+---DELETE---
+	/<common_name>
+
+---PUT---
+	/<common_name>
+
+---GET---
+	/						# get all tracks
+	/<common_name>						#1		/for_radio/<radio id>	# get all tracks for radio
+	/per_radio/<radio id>	# get all tracks for radio
+		#2		if format json, check if {'radio_id': 'FIP'}
+
+
+	/reviewed							# reviewed tracks
+		/for_radio/<radio id>				# reviewed tracks of radio
+
+	/not_reviewed						# non reviewed tracks
+		/for_radio/<radio id>
+
+
+	/num								# number of tracks
+	/num/reviewed						# num reviewed tracks
+		/for_radio/<radio id>
+
+	/num/not_reviewed					# num of non reviewed tracks
+		/for_radio/<radio id>
+
+	# /period/<dd-mm-yy_dd-mm-yy>							# tracks for specific period
+	# 	/for_radio/<radio id>
+
+	/period/<dd-mm-yy_dd-mm-yy>/reviewed				# reviewed tracks for specific period
+		/for_radio/<radio id>
+
+	/period/<dd-mm-yy_dd-mm-yy>/not_reviewed			# not reviewed tracks for specific period
+		/for_radio/<radio id>
+
+	# /period/<dd-mm-yy_dd-mm-yy>/num					# num of tracks for specific period
+	# 	/for_radio/<radio id>
+
+	/period/<dd-mm-yy_dd-mm-yy>/num/reviewed			# num of tracks for specifi period
+		/for_radio/<radio id>
+
+	/period/<dd-mm-yy_dd-mm-yy>/num/not_reviewed		# tracks for specific period
+		/for_radio/<radio id>

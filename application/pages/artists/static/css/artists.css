@@ -1,0 +1,20 @@
+body{
+background-image: url('../BG.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.page-link{
+    background-color: #343a40ba;
+    color: white;
+    border: none;
+    outline: none ;
+}
+
+.page-item.active .page-link{
+background-color: #3d444ca8;
+}
+
+.table-dark{
+background-color: #343a40ba;
+}

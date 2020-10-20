@@ -1,6 +1,8 @@
 from application.db_models.extenders_for_db_models import BaseExtended
-from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, and_
-
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime, and_
+from application.db_models import radio_db
+from sqlalchemy import or_
+from datetime import datetime
 
 class Track(BaseExtended):
     unique_search_field = 'common_name'
@@ -15,18 +17,33 @@ class Track(BaseExtended):
     duration = Column(String)
     play_date = Column(String(30))
     radio_name = Column(String, ForeignKey('radios.name'), nullable=False)
-    db_import_date = Column(String, ForeignKey('dbImports.import_date'))
+    db_import_date = Column(DateTime, ForeignKey('dbImports.import_date'))
     spotify_export_date = Column(Integer, ForeignKey('spotifyExports.export_date'))
     download_link = Column(String)
     failed_to_downloaded = Column(String)
+    # failed_to_downloaded = Column(Boolean, default=False)
     reviewed = Column(String)
     in_spotify = Column(String)
     failed_to_spotify = Column(String)
     genre = Column(String(20))
     youtube_link = Column(String)
+    created_on = Column(DateTime(), default=datetime.now)
 
     def __repr__(self):
        return f"<Track(name: {self.common_name}, radio: {self.radio_name}, import time: {self.db_import_date})>"
+
+    @classmethod
+    def query_tracks(cls, start_date='', end_date='', start='', end='', q_filter=''):
+        q_selector = cls.query(cls.artist, cls.title)
+        res = cls.query_objects(q_selector=q_selector,
+                                q_filter=q_filter,
+                                start_date=start_date,
+                                end_date=end_date,
+                                between_argument='db_import_date')
+        res = cls.limit_objects(res, start, end).all()
+
+        return [{'artist': track[0], 'title': track[1]} for track in res]
+
 
     @classmethod
     def get_artists(cls):
@@ -35,65 +52,144 @@ class Track(BaseExtended):
         return sorted(set(res))
 
     @classmethod
-    def get_num_tracks_per_radio(cls, radio_name):
-        res = (cls.session.query(cls).filter(cls.radio_name == radio_name)).count()
-        cls.session.close()
-        return res
+    def get_tracks_per_artist(cls, artist, start_id='', end_id=''):
+        q_filter = cls.artist == artist
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
 
     @classmethod
-    def get_tracks_per_radio(cls, radio_name):
-        res = (cls.session.query(cls).filter(cls.radio_name == radio_name)).all()
-        cls.session.close()
-        return cls.to_json(res)
+    def get_tracks_per_radio_num(cls, radio_name):
+        q_filter = cls.radio_name == radio_name
+        return cls.query_objects_num(q_filter=q_filter, between_argument='db_import_date')
+
 
     @classmethod
-    def get_num_tracks_per_radios(cls):
+    def get_tracks_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = cls.radio_name == radio_name
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
 
-        radios = [radio[0] for radio in cls.session.query(cls.radio_name).all()]
-        res = {}
-        for radio in radios:
-            res[radio] = res[radio] + 1 if radio in res.keys() else 1
 
-        cls.session.close()
-        return res
+    @classmethod
+    def get_tracks_per_radios_num(cls):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        return cls.query_objects_num_all_sorted(between_argument='db_import_date',
+                                                sort_argument='radio_name',
+                                                init_dict=init_dict)
+
+    @classmethod
+    def get_tracks_num(cls):
+        return cls.query_objects_num()
 
     # format start_date='18-09-2020', end_date='19-09-2020'
+
     @classmethod
-    def get_num_tracks_per_radio_per_date(cls, radio='', start_date='', end_date=''):
-        res = {}
-        if start_date and end_date:
+    def get_tracks_per_date_per_radios_num(cls, start_date, end_date):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
+                                                sort_argument='radio_name', init_dict=init_dict)
 
-            if isinstance(start_date, str) == isinstance(end_date, str) == True:
-                if '-' in start_date and '-' in end_date:
-                    start_day = int(start_date.split('-')[0])
-                    end_day = int(end_date.split('-')[0])
-                    print(start_day, end_day)
-                    if end_day - start_day < 1:
-                        return {'result': 'difference in days less than 1'}
 
-                    start_date = start_date.replace('-', '/')
-                    end_date = end_date.replace('-', '/')
-                    if radio:
-                        res = cls.session.query(cls).filter(and_(
-                                cls.radio_name == radio,
-                                cls.db_import_date.between(start_date, end_date))).count()
+    # @classmethod
+    # def get_tracks_per_date_template(cls, start_date, end_date):
+    #     return cls.query(cls).filter(cls.db_import_date.between(start_date, end_date))
 
-                    else:
-                        radios = cls.session.query(cls.radio_name).\
-                            filter(cls.db_import_date.between(start_date, end_date)).all()
-                        radios = [radio[0] for radio in radios]
-                        res = {}
-                        for radio in radios:
-                            res[radio] = res[radio] + 1 if radio in res.keys() else 1
+    @classmethod
+    def get_tracks_per_date_num(cls, start_date, end_date):
+        return cls.query_objects_num(start_date, end_date, between_argument='db_import_date')
 
-                    cls.session.close()
 
-            # elif isinstance(play, datetime):
-            #     orig_date = play_date.strftime('%d/%m/%Y')
-            #     day = play_date.day
-            #     play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
 
-        return res
+    @classmethod
+    def get_tracks_per_date(cls, start_date, end_date, start_id='', end_id=''):
+        return cls.query_tracks(start_date=start_date, end_date=end_date, start=start_id, end=end_id)
+
+
+    @classmethod
+    def get_tracks_per_date_per_radio_num(cls, start_date, end_date, radio_name):
+        q_filter = cls.radio_name == radio_name
+        return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='db_import_date')
+
+    @classmethod
+    def get_tracks_per_date_per_radio(cls, start_date, end_date, radio_name, start_id='', end_id=''):
+        q_filter = cls.radio_name == radio_name
+        return cls.query_tracks(start_date, end_date, q_filter=q_filter, start=start_id, end=end_id)
+
+### Reviewed tracks per data ###
+    @classmethod
+    def get_tracks_per_date_reviewed_num_per_radios(cls, start_date, end_date):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        q_filter = cls.reviewed == True
+        return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
+                                                sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_reviewed_num_per_radios(cls):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        q_filter = cls.reviewed == True
+        return cls.query_objects_num_all_sorted(sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed(cls, start_date, end_date, start_id='', end_id=''):
+        q_filter = cls.reviewed == True
+        return cls.query_tracks(start_date=start_date, end_date=end_date, start=start_id, end=end_id, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed_num(cls, start_date, end_date):
+        q_filter = cls.reviewed == True
+        return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='db_import_date')
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed_per_radio(cls, start_date, end_date, radio_name, start_id='', end_id=''):
+        q_filter = (cls.reviewed == True) & (cls.radio_name == radio_name)
+        return cls.query_tracks(start_date=start_date, end_date=end_date,  start=start_id, end=end_id, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed_num_per_radio(cls, start_date, end_date, radio_name):
+        q_filter = (cls.reviewed == True) & (cls.radio_name == radio_name)
+        return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='db_import_date')
+
+
+### NOT Reviewed tracks per data ###
+    @classmethod
+    def get_tracks_per_date_reviewed_not_num_per_radios(cls, start_date, end_date):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
+                                                 sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_reviewed_not_num_per_radios(cls):
+        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_objects_num_all_sorted(sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_per_date_reviewed_not(cls, start_date, end_date, start_id='', end_id=''):
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_tracks(start_date=start_date, end_date=end_date, start=start_id, end=end_id, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_per_date_reviewed_not_num(cls, start_date, end_date):
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='db_import_date')
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed_not_per_radio(cls, start_date, end_date, radio_name, start_id='', end_id=''):
+        q_filter = ((cls.reviewed == None) | (cls.reviewed == False)) & (cls.radio_name == radio_name)
+        return cls.query_tracks(start_date=start_date, end_date=end_date, start=start_id, end=end_id, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_per_date_reviewed_not_num_per_radio(cls, start_date, end_date, radio_name):
+        q_filter = ((cls.reviewed == None) | (cls.reviewed == False)) & (cls.radio_name == radio_name)
+        return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='db_import_date')
+
+
 
     def export_tracks_to_spotify(self):
         pass
@@ -103,3 +199,79 @@ class Track(BaseExtended):
 
     def get_youtube_links_for_tracks(self):
         pass
+
+    # @classmethod
+    # def get_tracks_query(cls, start='', end=''):
+    #     if not start:
+    #         start = 0
+    #
+    #     if not end:
+    #         end = 50
+    #
+    #     # return cls.query(cls.artist, cls.title).offset(start).limit(end).all()
+    #     if q_filter:
+    #         res = cls.query(cls.artist, cls.title).filter(q_filter).offset(start).limit(end).all()
+    #     else:
+    #         res = cls.query(cls.artist, cls.title).offset(start).limit(end).all()
+    #     return [{'artist': track[0], 'title': track[1]} for track in res]
+
+    # @classmethod
+    # def get_tracks_all(cls, start='', end='', q_filter=''):
+    #     q_selector = cls.artist, cls.title
+    #     res = cls.query_objects(q_selector=q_selector, q_filter=q_filter)
+    #     res = cls.limit_objects(res, start, end).all()
+    #
+    #     return [{'artist': track[0], 'title': track[1]} for track in res]
+
+    @classmethod
+    def get_tracks(cls, start_id='', end_id=''):
+        return cls.query_tracks(start=start_id, end=end_id)
+
+    @classmethod
+    def get_track(cls, common_name):
+        return cls.query(cls).filter(cls.common_name == common_name).one_or_none()
+
+#### NOT Reviewed Tracks ####
+    @classmethod
+    def get_tracks_reviewed_not(cls, start_id='', end_id=''):
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_reviewed_not_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = ((cls.reviewed == None) | (cls.reviewed == False)) & (cls.radio_name == radio_name)
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_reviewed_not_num(cls):
+        q_filter = (cls.reviewed == None) | (cls.reviewed == False)
+        return cls.query_objects_num(q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_reviewed_not_per_radio_num(cls, radio_name):
+        q_filter = ((cls.reviewed == None) | (cls.reviewed == False)) & (cls.radio_name == radio_name)
+        return cls.query_objects_num(q_filter=q_filter)
+
+#### Reviewed Tracks ####
+    @classmethod
+    def get_tracks_reviewed(cls, start_id='', end_id=''):
+        q_filter = (cls.reviewed == True)
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_reviewed_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = (cls.reviewed == True) & (cls.radio_name == radio_name)
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_reviewed_num(cls):
+        q_filter = (cls.reviewed == True)
+        return cls.query_objects_num(q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_reviewed_per_radio_num(cls, radio_name):
+        q_filter = (cls.reviewed == True) & (cls.radio_name == radio_name)
+        return cls.query_objects_num(q_filter=q_filter)

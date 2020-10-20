@@ -5,4 +5,5 @@ cur_conf = DevConfig
 app = create_app(cur_conf)
 
 if __name__ == "__main__":
+    print(app.url_map)
     app.run(host=cur_conf.HOST)

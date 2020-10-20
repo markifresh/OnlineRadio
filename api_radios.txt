@@ -1,0 +1,38 @@
+/api/radios
+---PATCH---
+	/<name>				# update import
+
+---PUT---
+	/<name>
+
+---DELETE---
+	/<name>
+
+
+---GET---
+	/						# get all tracks
+	/<name>
+
+
+
+	/for_radio/<radio id>
+		#1		/for_radio/<radio id>	# get all exports for radio
+		#2		if format json, check if {'radio_id': 'FIP'}
+
+
+	/num								# number of tracks
+		/for_radio/<radio id>
+
+
+	/period/<dd-mm-yy_dd-mm-yy>							# tracks for specific period
+		/for_radio/<radio id>
+
+
+	/period/<dd-mm-yy_dd-mm-yy>/num					# num of tracks for specific period
+		/for_radio/<radio id>
+
+
+api/radios/update
+	/radios_list
+	/radio_tracks/<id>
+	/

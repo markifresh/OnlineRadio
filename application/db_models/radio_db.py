@@ -1,6 +1,6 @@
-from .dbimport_db import DBImport
-from .track_db import Track
-from .spotifyexport_db import SpotifyExport
+from application.db_models import dbimport_db
+from application.db_models import spotifyexport_db
+from application.db_models import track_db
 
 from config import RadioConfig, APIConfig
 from json import loads
@@ -8,7 +8,7 @@ from requests import post as request_post
 
 from application.db_models.extenders_for_db_models import BaseExtended
 
-from sqlalchemy import Column, Integer, String, Sequence
+from sqlalchemy import Column, Integer, String, Sequence, DateTime
 from sqlalchemy.orm import relationship
 from traceback import format_exc as traceback_format_exc
 from datetime import datetime, timedelta
@@ -17,30 +17,175 @@ from time import sleep
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 
+from bs4 import BeautifulSoup
+
+
 class RadioExternalFunctions:
 
     @classmethod
     def get_fip_stations(cls):
-        res_list = []
         json = {'query': '{ brand'
         f'(id: {RadioConfig.fip_radio["id"]}) '
-                         '{ id webRadios { id } } } '}
+                         '{ id liveStream webRadios { id liveStream} } } '}
         headers = {'x-token': APIConfig.radio_api_key}
         res = request_post(url=RadioConfig.fip_radio['tracks_request_url'], json=json, headers=headers)
 
         if res.status_code != 200:
             return {'success': False, 'result': res.status_code, 'respond': res.text}
+        radio_url = RadioConfig.fip_radio['url']
+        radio = loads(res.text)['data']['brand']
+        radios = radio['webRadios']
+        fip_radio = {'name': radio['id'],
+                     'url': radio_url,
+                     'stream_url': radio['liveStream']}
+        fip_stations = {}
+        for radio in radios:
+            fip_stations[radio['id']] = {'name': radio['id'],
+                                         'url': radio_url,
+                                         'stream_url': radio['liveStream']}
+        fip_stations[fip_radio['name']] = fip_radio
 
-        radios = loads(res.text)['data']['brand']['webRadios']
-        fip_stations = [(radio['id']) for radio in radios]
-        fip_stations.append(RadioConfig.fip_radio['id'])
         for excluded_station in RadioConfig.exclude_radios:
             if excluded_station in fip_stations:
-                fip_stations.remove(excluded_station)
+                del fip_stations[excluded_station]
 
-        for fip_station in fip_stations:
-            res_list.append({'id': fip_station, 'url': RadioConfig.fip_radio['url']})
+        return {'success': True, 'result': fip_stations, 'respond': ''}
 
+    @classmethod
+    def get_djam_radio_now_tracks(cls):
+        """
+        0 tracks - current track
+            ∟ timetoplay - time after which need to make next request to get new current playing
+        other tracks - previous played (9 tracks)
+        """
+        res = request_post(RadioConfig.djam_radio['current_playing_url'], data={'origin': 'website'})
+        return loads(res.text)['tracks']
+
+    @classmethod
+    def get_fip_radio_now_track(cls, radio_name):
+        orig_date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        url = RadioConfig.fip_radio['tracks_request_url']
+        json = {'query': '{ live'
+                         f'(station: {radio_name}) '
+                         '{ song { start end track  { mainArtists title  } } } }  '}
+
+        headers = {'x-token': APIConfig.radio_api_key}
+        res = request_post(url=url, json=json, headers=headers)
+
+        if res.status_code != 200:
+            return {'success': False, 'result': 'Failed to get tracks from API', 'respond': ''}
+        track = loads(res.text)['data']['live']['song']
+
+        play_time = track.get('start', '')
+        if not play_time:
+            start_date = orig_date
+        else:
+            start_date = datetime.fromtimestamp(play_time).strftime('%d/%m/%Y %H:%M:%S')
+
+        end_time = track.get('end', '')
+        if not end_time:
+            end_date = orig_date
+        else:
+            end_date = datetime.fromtimestamp(end_time).strftime('%d/%m/%Y %H:%M:%S')
+
+        track = track['track']
+        if track:
+            artist = ','.join(track.get('mainArtists', '')).strip()
+            title = track.get('title', '').strip()
+            common_name = f'{artist} - {title}'
+            return {'album_name': track.get('albumTitle', ''),
+                             'common_name': common_name,
+                             'artist': artist,
+                             'title': title,
+                             'start_date': start_date,
+                             'end_date': end_date,
+                             'radio_name': radio_name}
+
+        return {}
+
+    @classmethod
+    def get_fip_radio_now_tracks(cls, radio_name):
+        end_time = datetime.now()
+        orig_date = end_time.strftime('%d-%m-%Y')
+        start_time = end_time - timedelta(minutes=15)
+        start_time = str(int(start_time.timestamp()))
+        end_time = str(int(end_time.timestamp()))
+
+        res_list = []
+        genre = radio_name.split('_')[-1].lower()
+        url = RadioConfig.fip_radio['tracks_request_url']
+        json = {'query': '{ grid'
+                         f'(start: {start_time}, end: {end_time}, station: {radio_name}) '
+                         '{ ... on TrackStep { start track  { mainArtists title albumTitle } } } }  '}
+
+        headers = {'x-token': APIConfig.radio_api_key}
+        res = request_post(url=url, json=json, headers=headers)
+
+        if res.status_code != 200:
+            return {'success': False, 'result': 'Failed to get tracks from API', 'respond': ''}
+        tracks = loads(res.text)['data']['grid']
+
+        for track in tracks:
+            play_time = track.get('start', '')
+            if not play_time:
+                play_date = orig_date
+            else:
+                play_date = datetime.fromtimestamp(play_time).strftime('%d/%m/%Y %H:%M:%S')
+            track = track['track']
+            if track:
+                artist = ','.join(track.get('mainArtists', '')).strip()
+                title = track.get('title', '').strip()
+                common_name = f'{artist} - {title}'
+                res_list.append({'album_name': track.get('albumTitle', ''),
+                                 'common_name': common_name,
+                                 'artist': artist,
+                                 'title': title,
+                                 'play_date': play_date,
+                                 'radio_name': radio_name,
+                                 'genre': genre})
+
+        return {'success': True, 'result': res_list, 'respond': ''}
+
+    @classmethod
+    def get_djam_radio_tracks(cls, play_date):
+        if isinstance(play_date, str) and '-' in play_date:
+            orig_date = play_date
+            day, month, year = play_date.split('-')[:3]             #06/09/2020
+            day, month, year = int(day), int(month), int(year)
+            play_date = datetime(year=year, month=month, day=day)
+
+        elif isinstance(play_date, datetime):
+            orig_date = play_date.strftime('%d/%m/%Y')
+            day = play_date.day
+            play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
+
+        else:
+            return {'success': False, 'result': 'incorrect date format', 'respond': ''}
+
+        res_list = []
+        url = RadioConfig.djam_radio['tracks_request_url']
+        while play_date.day == day:
+            data = {'day': play_date.day, 'month': play_date.month, 'hour': play_date.hour, 'minute': play_date.minute}
+            res = request_post(url, data=data)
+            elements = BeautifulSoup(res.text, 'html.parser').find_all('li')
+            for li in elements:
+                track_str = li.text
+                if 'Cinema -' not in track_str or 'Ledjam Radio' not in track_str:
+                    splited = track_str.split(' : ')
+                    play_time = splited[0].replace('h', ':')
+                    common_name = ':'.join(splited[1:]).split('-')
+                    title = common_name[0].strip()
+                    artist = ('-'.join(common_name[1:])).strip()
+                    common_name = f'{artist} - {title}'
+                    res_list.append({
+                        'artist': artist,
+                        'title': title,
+                        'play_date': f'{orig_date} {play_time}',
+                        'common_name': common_name,
+                        'genre': 'djam'
+                    })
+
+            play_date += timedelta(minutes=30)
         return {'success': True, 'result': res_list, 'respond': ''}
 
     @classmethod
@@ -109,7 +254,7 @@ class RadioExternalFunctions:
                     play_time = splited[0].replace('h', ':')
                     common_name = ':'.join(splited[1:]).split('-')
                     title = common_name[0].strip()
-                    artist = '-'.join(common_name[1:])
+                    artist = ('-'.join(common_name[1:])).strip()
                     common_name = f'{artist} - {title}'
                     res_list.append({
                         'artist': artist,
@@ -130,7 +275,7 @@ class RadioExternalFunctions:
 
     @classmethod
     def get_yesterday_djam_radio_tracks(cls):
-        return cls.get_djam_radio_tracks_selenium(datetime.now() - timedelta(days=1))
+        return cls.get_djam_radio_tracks(datetime.now() - timedelta(days=1))
 
     @classmethod
     def get_fip_radio_tracks(cls, radio_name, play_date):
@@ -201,7 +346,7 @@ class RadioExternalFunctions:
     def get_radio_tracks(cls, radio_name, play_date):
         try:
             if radio_name == RadioConfig.djam_radio['id']:
-                return cls.get_djam_radio_tracks_selenium(play_date)
+                return cls.get_djam_radio_tracks(play_date)
 
             elif RadioConfig.fip_radio['id'] in radio_name:
                 return cls.get_fip_radio_tracks(radio_name, play_date)
@@ -224,9 +369,11 @@ class Radio(BaseExtended, RadioExternalFunctions):
     id = Column(Integer, primary_key=True)
     name = Column(String(20), Sequence('radio_name_seq'), unique=True)  # id from api
     url = Column(String(80))
-    db_imports = relationship(DBImport, lazy=True)
-    spotify_exports = relationship(SpotifyExport, lazy=True)
-    tracks = relationship(Track, lazy=True)
+    stream_url = Column(String(80))
+    db_imports = relationship('dbimport_db.DBImport', lazy='dynamic')
+    spotify_exports = relationship('spotifyexport_db.SpotifyExport', lazy='dynamic')
+    tracks = relationship('track_db.Track', lazy='dynamic')
+    created_on = Column(DateTime(), default=datetime.now)
 
     def __repr__(self):
         return f"<Radio({self.name})>"
@@ -243,19 +390,22 @@ class Radio(BaseExtended, RadioExternalFunctions):
             return radios
 
         radios = radios['result']
-        radios.append(RadioConfig.djam_radio)
+        djam_radio = RadioConfig.djam_radio
+        radios[djam_radio['id']] = {'name': djam_radio['id'],
+                                    'url': djam_radio['url'],
+                                    'stream_url': djam_radio['stream_url']}
 
         db_radios = [radio[0] for radio in cls.session.query(cls.name).all()]
         cls.session.close()
 
         for radio in radios:
-            if radio["id"] not in db_radios:
-                res = cls.commit_data(cls(name=radio['id'], url=radio['url']))
+            if radio not in db_radios:
+                res = cls.commit_data(radios[radio])
                 if res['success']:
-                    updated_radios.append(radio["id"])
+                    updated_radios.append(radio)
                 else:
-                    radio['error'] = res['result']
-                    failed_radios.append(radio)
+                    radios[radio]['error'] = res['result']
+                    failed_radios.append(radios[radio])
 
         return {'success': len(failed_radios) == 0, 'updated': updated_radios, 'failed': failed_radios}
 
@@ -274,13 +424,14 @@ class Radio(BaseExtended, RadioExternalFunctions):
 
         return results
 
-    def update_radio_tracks(self):
+    @classmethod
+    def update_radio_tracks(cls, radio_name):
+        start = datetime.now()
         failed_tracks = []
         updated_tracks = []
         already_added_tracks = []
-        radioObject_name = self.name
 
-        radio_tracks = self.get_yesterday_radio_tracks(self.name)
+        radio_tracks = cls.get_yesterday_radio_tracks(radio_name)
 
         if not radio_tracks['success']:
             return radio_tracks
@@ -288,23 +439,21 @@ class Radio(BaseExtended, RadioExternalFunctions):
         radio_tracks = radio_tracks['result']
         total_tracks_num = len(radio_tracks)
 
-        db_tracks = [track[0] for track in self.session.query(Track.common_name).all()]
-        self.session.close()
-
-        import_time = datetime.now()
-        import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
-        self.commit_data(DBImport(import_date=import_date, radio_name=radioObject_name))
-        db_import = self.session.query(DBImport).filter(DBImport.import_date == import_date).first()
-        self.session.close()
+        db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
+        import_date = datetime.now()
+        # import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
+        cls.commit_data(dbimport_db.DBImport(import_date=import_date, radio_name=radio_name))
+        db_import = cls.session.query(dbimport_db.DBImport).filter(dbimport_db.DBImport.import_date == import_date).first()
+        cls.session.close()
         for track in radio_tracks:
             # db_session = self.create_db_session()
             # new_track = db_session.query(TrackModel).filter_by(common_name=track["common_name"]).scalar() is None
             # db_session.close()
             # if new_track:
             if track["common_name"] not in db_tracks:
-                res = self.commit_data(Track(
+                res = cls.commit_data(track_db.Track(
                     common_name=track['common_name'],
-                    radio_name=radioObject_name,
+                    radio_name=radio_name,
                     play_date=track['play_date'],
                     title=track['title'],
                     artist=track['artist'],
@@ -320,52 +469,48 @@ class Radio(BaseExtended, RadioExternalFunctions):
             else:
                 already_added_tracks.append(track)
 
+        end = datetime.now()
+        import_duration = round((end-start).total_seconds(), 2)
         num_tracks_added = len(updated_tracks)
         num_tracks_requested = num_tracks_added + len(already_added_tracks)
         res = db_import.update_row(data={'num_tracks_added': num_tracks_added,
-                                         'num_tracks_requested': num_tracks_requested})
-        print(res)
+                                         'num_tracks_requested': num_tracks_requested,
+                                         'import_duration': import_duration})
+
         return {'success': True,
                 'updated': updated_tracks,
                 'failed': failed_tracks,
                 'total tracks number': total_tracks_num,
                 'num_tracks_requested': num_tracks_requested,
                 'num_tracks_added': num_tracks_added,
-                'tracks': radio_tracks}
-
-
-    def get_latest_import(self):
-        db_import = self.session.query(DBImport).filter(DBImport.radio_name == self.name).\
-                    order_by(DBImport.import_date.desc()).first()
-        self.session.close()
-        return db_import.import_date.split('.')[0] if db_import else 'no imports'
+                'tracks': radio_tracks,
+                'update_time_sec': import_duration,
+                'import_date': import_date.strftime('%d-%m-%Y %H:%M:%S'),
+                'res': res}
 
 
     @classmethod
-    def export_all_radios_data_to_json(cls):
+    def get_radio_by_name(cls, name):
+        radio = cls.query(cls).filter(cls.name == name).one_or_none()
+        if not radio:
+            return {}
+
+        radio_dic = cls.to_json(radio)
+        radio_dic[name]['num_tracks'] = track_db.Track.get_tracks_per_radio_num(name)
+        radio_dic[name]['latest_dbimport'] = getattr(dbimport_db.DBImport.get_latest_import_for_radio(name), 'import_date', '-')
+        return radio_dic[name]
+
+    @classmethod
+    def get_all_radios(cls):
+        return cls.to_json(cls.all())
+
+    @classmethod
+    def get_data_for_radios_page(cls):
         radios = cls.all()
-        js_objects = cls.to_json(radios)
-        num_tracks = cls.get_tracks_num_per_radios()
         for radio in radios:
-            js_objects[radio.name]['num_tracks'] = num_tracks[radio.name]
-            js_objects[radio.name]['latest_dbimport'] = radio.get_tracks_num_per_radio()
-        return js_objects
-
-    def get_tracks_num_per_radio(self):
-        return Track.get_num_tracks_per_radio(self.name)
-
-    @classmethod
-    def get_tracks_num_per_radios(cls):
-        return Track.get_num_tracks_per_radios()
-
-    def get_tracks(self):
-        return Track.get_tracks_per_radio(self.name)
+            radio.num_tracks = track_db.Track.get_tracks_per_radio_num(radio.name)
+            db_import = dbimport_db.DBImport.get_latest_import_for_radio(radio.name)
+            radio.latest_dbimport = db_import.import_date.strftime('%d-%m-%Y %H:%M:%S') if db_import else None
+        return radios
 
 
-    # format start_date='18-09-2020', end_date='19-09-2020'
-    @classmethod
-    def get_tracks_num_per_radios_per_date(cls, radio='', start_date='', end_date=''):
-        return Track.get_num_tracks_per_radio_per_date(radio, start_date, end_date)
-
-    def get_tracks_num_per_radio_per_date(self, start_date='', end_date=''):
-        return Track.get_num_tracks_per_radio_per_date(self.name, start_date, end_date)

@@ -1,0 +1,112 @@
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/navbar_search.html' %}
+{% include 'parts/navbar_close.html' %}
+<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/radios.css') }}">
+<div class="container">
+
+  {% for radio in radios %}
+
+<div class="card bg-light text-center" id="card-{{ radio.name }}">
+  <div class="card-header">
+    <div class="row">
+      <div class="col-10" style="text-align: start">
+        <h3 class="text-muted">{{ radio.name | replace("_", " ")}}</h3>
+      </div>
+      <div class="col pr-0">
+        <img id="play-{{ radio.name }}" class="play-radio" src="static/play-out.png">
+        <img id="pause-{{ radio.name }}" class="pause-radio" src="static/pause-out.png" style="display: none">
+      </div>
+    </div>
+
+
+
+
+  </div>
+  <div class="card-body">
+    <blockquote class="blockquote mb-0 ">
+      <footer class="blockquote-footer">
+        <cite title="Source Title">
+          <a class="text-muted " href="{{ radio.url }}" target="_blank">
+            {{ radio.url }}
+          </a>
+        </cite>
+      </footer>
+      <div>
+          <div style="display: inline-block">
+          <a type="button" class="btn btn-outline-secondary tracks" role="button"
+                  href="{{ '/tracks/' + radio.name }}">
+            Tracks
+          </a>
+            </div>
+
+          <a type="button" class="btn btn-outline-secondary imports" role="button"
+                  href="{{ '/imports/' + radio.name }}">
+            Imports
+          </a>
+
+
+          <a type="button" class="btn btn-outline-secondary exports" role="button"
+                  href="{{ '/exports/' + radio.name }}">
+            Exports
+          </a>
+
+      </div>
+      <div>
+        <button type="button" id="import-{{ radio.name }}" class="btn btn-outline-info do-import">
+          Make Import
+        </button>
+        <button type="button"id="export-{{ radio.name }}"  class="btn btn-outline-info do-export">
+          Sync Spotify
+        </button>
+      </div>
+    </blockquote>
+  </div>
+  <div class="card-footer">
+    <div class="row">
+      <div class="col">
+        <small class="text-muted">Tracks in radio</small>
+      </div>
+      <div class="col">
+        <small class="text-muted tracks-num">{{ radio.num_tracks['number'] }}</small>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <div class="row">
+      <div class="col">
+        <small class="text-muted">Last import</small>
+      </div>
+      <div class="col">
+        <small class="text-muted import-date">{{ radio.latest_dbimport }}</small>
+      </div>
+    </div>
+  </div>
+    <div class="card-footer">
+    <div class="row">
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+</div>
+
+{% endfor %}
+</div>
+{% include 'parts/loader.html' %}
+
+<!--<audio controls></audio>-->
+
+<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
+<!--<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>-->
+</body>
+</html>

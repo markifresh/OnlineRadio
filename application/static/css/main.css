@@ -3,7 +3,17 @@ border: 0px solid transparent;
 outline: none !important;
 }
 
-body {margin-top: 80px;}
+body {
+    margin-top: 80px;}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 
 .card {
   width: 30%;
@@ -20,9 +30,24 @@ body {margin-top: 80px;}
 
 
 .card button{
-margin-top:5px;
+margin-top:10px;
 }
 
 .blockquote-footer{
     margin-bottom: 5px;
+}
+
+.card .btn {
+border-radius: 1.25rem}
+
+.mainNav .btn {
+border-radius: 1.25rem}
+
+audio{
+    bottom: 0;
+    right: 0;
+    position: fixed;
+    background-color: white;
+    outline: none ;
+    border-radius: 1.25rem;
 }

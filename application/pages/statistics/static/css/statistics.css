@@ -1,0 +1,22 @@
+body{
+background-image: url('../BG.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+#graphics div{
+background-color: #3a3636a8;
+}
+
+#graphics .tick{
+color: white;
+}
+
+#graphics h3{
+color: white;
+opacity: 80%;
+font-family: gaeguregular;
+text-align: center;
+
+}
+

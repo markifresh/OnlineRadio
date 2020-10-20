@@ -1,0 +1,46 @@
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/navbar_search.html' %}
+{% include 'parts/navbar_close.html' %}
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/artists.css') }}">
+
+
+<div class="container">
+<table class="table table-hover table-dark">
+  <thead>
+    <tr>
+      <th scope="col">Artist</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for artist in artists %}
+    <tr>
+      <td>{{ artist }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+<nav aria-label="Page navigation example">
+  <ul class="pagination pagination-dark justify-content-end">
+    <li class="page-item">
+      <a class="page-link" href="#" tabindex="-1">Previous</a>
+    </li>
+    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+    <li class="page-item"><a class="page-link" href="#">2</a></li>
+    <li class="page-item"><a class="page-link" href="#">3</a></li>
+    <li class="page-item">
+      <a class="page-link" href="#">Next</a>
+    </li>
+  </ul>
+</nav>
+
+<!--<script type="text/javascript" src="{{ url_for('.static', filename='js/statistics.js') }}"></script>-->
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
