@@ -254,6 +254,39 @@ class Track(BaseExtended):
         q_filter = ((cls.reviewed == None) | (cls.reviewed == False)) & (cls.radio_name == radio_name)
         return cls.query_objects_num(q_filter=q_filter)
 
+    @classmethod
+    def get_tracks_exported_not_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = (cls.radio_name == radio_name) & \
+                   ((cls.in_spotify == None) | (cls.in_spotify == False)) & \
+                   ((cls.failed_to_spotify == None) | (cls.failed_to_spotify == False))
+
+
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_exported_not_per_radio_num(cls, radio_name):
+        q_filter = (cls.radio_name == radio_name) & \
+                   ((cls.in_spotify == None) | (cls.in_spotify == False)) & \
+                   ((cls.failed_to_spotify == None) | (cls.failed_to_spotify == False))
+
+        return cls.query_objects_num(q_filter=q_filter)
+
+    @classmethod
+    def get_tracks_exported_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = (cls.radio_name == radio_name) & \
+                   (((cls.in_spotify != None) & (cls.in_spotify != False))  |
+                   ((cls.failed_to_spotify != None) & (cls.failed_to_spotify != False)))
+
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
+
+    @classmethod
+    def get_tracks_exported_failed_per_radio(cls, radio_name, start_id='', end_id=''):
+        q_filter = (cls.radio_name == radio_name) & \
+                   ((cls.failed_to_spotify != None) & (cls.failed_to_spotify != False))
+
+        return cls.query_tracks(start=start_id, end=end_id, q_filter=q_filter)
+
 #### Reviewed Tracks ####
     @classmethod
     def get_tracks_reviewed(cls, start_id='', end_id=''):

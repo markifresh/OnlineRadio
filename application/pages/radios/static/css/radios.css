@@ -7,3 +7,8 @@ background-image: url('../BG.jpg');
 .bg-light{
 background-color:#1d2122e6 !important;
 }
+
+.card-footer{
+padding-top: 3px;
+padding-bottom: 3px;
+}

@@ -74,10 +74,10 @@ class RadiosListUpdate(Resource):
 @radios_api.param('name', 'Radio name')
 class RadioExport(Resource):
 
-    @radios_api.marshal_with(radios_schemas.radio_tracks_update)
+    @radios_api.marshal_with(radios_schemas.radio_tracks_export)
     def get(self, name):
         """ Exports tracks of radio to Spotify """
-        return spotifyexport_db.SpotifyExport.export_radio(name)
+        return radio_db.Radio.export_tracks(name)
 
 # @radios_api.route('/')
 # class RadioLists(Resource):

@@ -81,6 +81,8 @@ class SpotifyConfig:
     CLIENT_KEY = APIConfig.spotify_api_key
     PLAYLISTS_REQUEST_LIMIT = 50
     PLAYLIST_TRACKS_REQUEST_LIMIT = 100
+    TRACKS_SEARCH_LIMIT = 100
+    TRACKS_ADD_LIMIT = 100
 
 
 class DBConfig:

@@ -11,14 +11,14 @@ from application.db_models.extenders_for_db_models import BaseExtended
 from sqlalchemy import Column, Integer, String, Sequence, DateTime
 from sqlalchemy.orm import relationship
 from traceback import format_exc as traceback_format_exc
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from time import sleep
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
 
 from bs4 import BeautifulSoup
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class RadioExternalFunctions:
 
@@ -154,7 +154,7 @@ class RadioExternalFunctions:
             day, month, year = int(day), int(month), int(year)
             play_date = datetime(year=year, month=month, day=day)
 
-        elif isinstance(play_date, datetime):
+        elif isinstance(play_date, datetime) or isinstance(play_date, date):
             orig_date = play_date.strftime('%d/%m/%Y')
             day = play_date.day
             play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
@@ -162,15 +162,24 @@ class RadioExternalFunctions:
         else:
             return {'success': False, 'result': 'incorrect date format', 'respond': ''}
 
-        res_list = []
         url = RadioConfig.djam_radio['tracks_request_url']
+        res_list = []
+        dates_list = []
+        dates_list.append(play_date)
+        time_step_min = 30
+        play_date += timedelta(minutes=time_step_min)
+
         while play_date.day == day:
-            data = {'day': play_date.day, 'month': play_date.month, 'hour': play_date.hour, 'minute': play_date.minute}
+            dates_list.append(play_date)
+            play_date += timedelta(minutes=time_step_min)
+
+        def get_jam_tracks_threads(one_date):
+            data = {'day': one_date.day, 'month': one_date.month, 'hour': one_date.hour, 'minute': one_date.minute}
             res = request_post(url, data=data)
             elements = BeautifulSoup(res.text, 'html.parser').find_all('li')
             for li in elements:
                 track_str = li.text
-                if 'Cinema -' not in track_str or 'Ledjam Radio' not in track_str:
+                if 'Cinema' not in track_str and 'Ledjam Radio' not in track_str:
                     splited = track_str.split(' : ')
                     play_time = splited[0].replace('h', ':')
                     common_name = ':'.join(splited[1:]).split('-')
@@ -185,8 +194,10 @@ class RadioExternalFunctions:
                         'genre': 'djam'
                     })
 
-            play_date += timedelta(minutes=30)
-        return {'success': True, 'result': res_list, 'respond': ''}
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            executor.map(get_jam_tracks_threads, dates_list)
+
+        return {'success': True, 'result': res_list, 'respond': '', 'for_day': play_date}
 
     @classmethod
     def get_djam_radio_tracks_selenium(cls, play_date):
@@ -196,7 +207,7 @@ class RadioExternalFunctions:
             day, month, year = int(day), int(month), int(year)
             play_date = datetime(year=year, month=month, day=day)
 
-        elif isinstance(play_date, datetime):
+        elif isinstance(play_date, datetime) or isinstance(play_date, date):
             orig_date = play_date.strftime('%d/%m/%Y')
             day = play_date.day
             play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
@@ -286,7 +297,7 @@ class RadioExternalFunctions:
             play_date = datetime(year=year, month=month, day=day)
             orig_date = orig_date.replace('-', '/')
 
-        elif isinstance(play_date, datetime):
+        elif isinstance(play_date, datetime) or isinstance(play_date, date):
             orig_date = play_date.strftime('%d/%m/%Y')
             day = play_date.day
             play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
@@ -296,11 +307,18 @@ class RadioExternalFunctions:
 
         from_date = play_date
         res_list = []
+        dates_list = []
+        dates_list.append(from_date)
+        time_step = 4
+        from_date += timedelta(hours=time_step)
 
         while from_date.day == day:
-            start_time = str(int(from_date.timestamp()))
-            from_date += timedelta(hours=4)
-            end_time = str(int(from_date.timestamp()))
+            dates_list.append(from_date)
+            from_date += timedelta(hours=time_step)
+
+        def get_tracks_by_threads(one_date):
+            start_time = str(int(one_date.timestamp()))
+            end_time = str(int((one_date + timedelta(hours=time_step)).timestamp()))
 
             genre = radio_name.split('_')[-1].lower()
             url = RadioConfig.fip_radio['tracks_request_url']
@@ -334,9 +352,11 @@ class RadioExternalFunctions:
                                      'play_date': play_date,
                                      'radio_name': radio_name,
                                      'genre': genre})
-            sleep(2)
 
-        return {'success': True, 'result': res_list, 'respond': ''}
+        with ThreadPoolExecutor(max_workers=15) as executor:
+            executor.map(get_tracks_by_threads, dates_list)
+
+        return {'success': True, 'result': res_list, 'respond': '', 'for_date': play_date}
 
     @classmethod
     def get_yesterday_fip_radio_tracks(cls, radio_name):
@@ -357,10 +377,22 @@ class RadioExternalFunctions:
 
     @classmethod
     def get_yesterday_radio_tracks(cls, radio_name):
-        return cls.get_radio_tracks(radio_name, datetime.now() - timedelta(days=1))
+        return cls.get_radio_tracks(radio_name, datetime.now())
 
 
+    @classmethod
+    def get_radio_tracks_per_range(cls, radio_name, start_date=None, end_date=None):
+        res = []
+        futures = []
+        calendar = BaseExtended.get_date_range_list(start_date, end_date)
 
+        with ThreadPoolExecutor(max_workers=15) as executor:
+            for one_day in calendar:
+                futures.append(executor.submit(cls.get_radio_tracks, radio_name, one_day))
+        for future in as_completed(futures):
+            res.append(future.result())
+
+        return res
 
 class Radio(BaseExtended, RadioExternalFunctions):
     unique_search_field = 'name'
@@ -425,19 +457,21 @@ class Radio(BaseExtended, RadioExternalFunctions):
         return results
 
     @classmethod
-    def update_radio_tracks(cls, radio_name):
+    def update_radio_tracks(cls, radio_name, day=None):
         start = datetime.now()
         failed_tracks = []
         updated_tracks = []
         already_added_tracks = []
 
-        radio_tracks = cls.get_yesterday_radio_tracks(radio_name)
+        if not day:
+            radio_tracks = cls.get_yesterday_radio_tracks(radio_name)
+        else:
+            radio_tracks = cls.get_radio_tracks(radio_name, day)
 
         if not radio_tracks['success']:
             return radio_tracks
 
         radio_tracks = radio_tracks['result']
-        total_tracks_num = len(radio_tracks)
 
         db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
         import_date = datetime.now()
@@ -472,15 +506,16 @@ class Radio(BaseExtended, RadioExternalFunctions):
         end = datetime.now()
         import_duration = round((end-start).total_seconds(), 2)
         num_tracks_added = len(updated_tracks)
-        num_tracks_requested = num_tracks_added + len(already_added_tracks)
-        res = db_import.update_row(data={'num_tracks_added': num_tracks_added,
+        num_tracks_requested = len(radio_tracks)
+        res = db_import.update_row(data={'import_date': import_date,
+                                         'num_tracks_added': num_tracks_added,
                                          'num_tracks_requested': num_tracks_requested,
                                          'import_duration': import_duration})
 
-        return {'success': True,
+        return {'success': res['success'],
                 'updated': updated_tracks,
                 'failed': failed_tracks,
-                'total tracks number': total_tracks_num,
+                'total tracks number': num_tracks_requested,
                 'num_tracks_requested': num_tracks_requested,
                 'num_tracks_added': num_tracks_added,
                 'tracks': radio_tracks,
@@ -488,6 +523,19 @@ class Radio(BaseExtended, RadioExternalFunctions):
                 'import_date': import_date.strftime('%d-%m-%Y %H:%M:%S'),
                 'res': res}
 
+    @classmethod
+    def update_radio_tracks_per_range(cls, radio_name, start_date=None, end_date=None):
+        res = []
+        futures = []
+        calendar = cls.get_date_range_list(start_date, end_date)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            for one_day in calendar:
+                futures.append(executor.submit(cls.update_radio_tracks, radio_name, one_day))
+        for future in as_completed(futures):
+            res.append(future.result())
+
+        return res
 
     @classmethod
     def get_radio_by_name(cls, name):
@@ -511,6 +559,57 @@ class Radio(BaseExtended, RadioExternalFunctions):
             radio.num_tracks = track_db.Track.get_tracks_per_radio_num(radio.name)
             db_import = dbimport_db.DBImport.get_latest_import_for_radio(radio.name)
             radio.latest_dbimport = db_import.import_date.strftime('%d-%m-%Y %H:%M:%S') if db_import else None
+            spotify_export = spotifyexport_db.SpotifyExport.get_latest_export_for_radio(radio.name)
+            radio.latest_spotify_export = \
+                spotify_export.export_date.strftime('%d-%m-%Y %H:%M:%S') if spotify_export else None
+            radio.to_export_num_tracks = track_db.Track.get_tracks_exported_not_per_radio_num(radio_name=radio.name)
         return radios
 
 
+    @classmethod
+    def export_tracks(cls, radio_name, limit=100):
+        num_tracks_added = 0
+        export_date = datetime.now()
+        tracks = track_db.Track.get_tracks_exported_not_per_radio(radio_name, end_id=limit)
+        # tracks = [f'{track["artist"]} - {track["title"]}' for track in tracks]
+        cls.commit_data(spotifyexport_db.SpotifyExport(export_date=export_date,
+                                                       radio_name=radio_name,
+                                                       num_tracks_requested=len(tracks)))
+
+        from application.apis.spotify_api import create_obj
+        sp = create_obj()
+        playlist = sp.get_user_playlist_by_name(radio_name)
+
+        if not playlist['success']:
+            playlist = sp.create_user_playlist(name=radio_name)
+
+        ress = sp.add_tracks_to_playlist(radio_name, tracks)
+        if not ress['success']:
+            ress['export_date'] = export_date.strftime('%d-%m-%Y %H:%M:%S')
+            print(ress)
+            return ress
+
+        num_tracks_requested = len(ress['failed_to_find']) + len(ress['errored'])
+        for res in ress['result']:
+            print(res)
+            num_tracks_requested += len(res.get('added', ''))
+            if res['success']:
+                num_tracks_added += len(res.get('added', ''))
+                for track in res['added']:
+                    track['spotify_export_date'] = export_date
+                    track_db.Track.update_row(data=track)
+
+        for track in ress['failed_to_find']:
+            track_db.Track.update_row(data={'common_name': track,
+                                            'failed_to_spotify': 'True',
+                                            'spotify_export_date': export_date})
+
+        spotifyexport_db.SpotifyExport.update_row(data={'export_date': export_date,
+                                                        'num_tracks_added': num_tracks_added,
+                                                        'num_tracks_requested': num_tracks_requested})
+
+        ress['export_date'] = export_date.strftime('%d-%m-%Y %H:%m:%S')
+        ress['num_tracks_added'] = num_tracks_added
+        ress['num_tracks_exported'] = num_tracks_added + len(ress['failed_to_find'])
+        ress['num_tracks_requested'] = num_tracks_requested
+        return ress

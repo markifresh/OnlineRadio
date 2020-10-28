@@ -40,12 +40,28 @@ setRadiosStreams();
 
 function makeImportExport(elem, url){
 // replace setTimeout with api request fetch
+  let makeExport = url.includes('export');
+  console.log(makeExport);
   let currentBtn = elem.outerHTML;
   let radioName = elem.id.split('-').pop();
   url += radioName;
-  let tracksEl = document.querySelector('#card-' + radioName + ' .tracks-num');
+  let tracksEl = '';
+  let dateEl = '';
+
+  if(makeExport)
+      {
+          tracksEl = document.querySelector('#card-' + radioName + ' .tracks-num-to-export');
+          dateEl = document.querySelector('#card-' + radioName + ' .export-date');
+          for(let exportBtn of document.querySelectorAll('.do-export'))
+            exportBtn.disabled = true;
+      }
+  else
+      {
+          tracksEl = document.querySelector('#card-' + radioName + ' .tracks-num');
+          dateEl = document.querySelector('#card-' + radioName + ' .import-date');
+      }
+
   let tracksNum = parseInt(tracksEl.innerText);
-  let importDateEl = document.querySelector('#card-' + radioName + ' .import-date');
   // event.target.outerHTML = document.querySelector(".spinner.template").outerHTML.replace('display:none', '');
   // event.target.style.display = "";
   elem.innerHTML = '';
@@ -59,14 +75,26 @@ function makeImportExport(elem, url){
   fetch(url)
     .then(response => response.json())
     .then(data => {
+      for(let exportBtn of document.querySelectorAll('.do-export'))
+        exportBtn.disabled = false;
       clonedElem.remove();
       elem.outerHTML = currentBtn;
-      if (data.success)
-        {
-          tracksNum += data.num_tracks_added;
-          tracksEl.innerText = tracksNum.toString();
-          importDateEl.innerText = data.import_date;
-        }
+      // if (data.success)
+      //   {
+          if(makeExport){
+            tracksNum -= data.num_tracks_exported;
+            tracksEl.innerText = tracksNum.toString();
+            dateEl.innerText = data.export_date;
+          }
+          else{
+            tracksNum += data.num_tracks_added;
+            tracksEl.innerText = tracksNum.toString();
+            dateEl.innerText = data.import_date;
+          }
+
+        // }
+        // if (!data.success)
+        // make alarm
       });
 }
 

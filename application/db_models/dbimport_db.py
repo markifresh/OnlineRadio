@@ -1,7 +1,7 @@
 from application.db_models.extenders_for_db_models import BaseExtended
 from sqlalchemy import Column, Integer, String, Float, Sequence, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.orm import lazyload
 from application.db_models import track_db
 
@@ -96,3 +96,18 @@ class DBImport(BaseExtended):
     def get_imports_per_date_per_radio_num(cls, start_date, end_date, radio_name):
         q_filter = cls.radio_name == radio_name
         return cls.query_objects_num(start_date, end_date, q_filter=q_filter, between_argument='import_date')
+
+    @classmethod
+    def get_radio_missing_import_dates(cls, radio_name, start_date=None, end_date=None):
+        calendar = cls.get_date_range_list(start_date, end_date)
+
+        imports_calendar = cls.query(cls.import_date).filter(cls.radio_name == radio_name,
+                                                             cls.import_date.between(start_date, end_date)).all()
+
+        imports_calendar = set(import_day[0].date() for import_day in imports_calendar)
+        missing_days = calendar
+        for import_day in imports_calendar:
+            if import_day in imports_calendar:
+                missing_days.remove(import_day)
+
+        return missing_days

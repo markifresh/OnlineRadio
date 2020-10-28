@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import api
 from traceback import format_exc as traceback_format_exc
 # from application.db_models import db_session, engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql.elements import BinaryExpression
+from sqlalchemy.sql.elements import BinaryExpression, BooleanClauseList
+from datetime import datetime, timedelta
 
 
 Base = declarative_base()
@@ -19,6 +20,34 @@ class BaseExtended(Base):
     engine = session.bind
     query = session.query
 
+    @classmethod
+    def get_date_range_list(cls, start_date=None, end_date=None):
+        if not end_date:
+            end_date = datetime.now().date()
+        else:
+            if isinstance(end_date, str) and '-' in end_date:
+                day, month, year = end_date.split('-')[:3]  # 06/09/2020
+                day, month, year = int(day), int(month), int(year)
+                end_date = datetime(year=year, month=month, day=day)
+
+        if not start_date:
+            start_date = end_date - timedelta(days=30)
+        else:
+            if isinstance(start_date, str) and '-' in start_date:
+                day, month, year = start_date.split('-')[:3]  # 06/09/2020
+                day, month, year = int(day), int(month), int(year)
+                start_date = datetime(year=year, month=month, day=day)
+
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+
+        calendar = []
+        day_current = start_date
+        while day_current <= end_date:
+            calendar.append(day_current)
+            day_current += timedelta(days=1)
+
+        return calendar
 
     @classmethod
     def all(cls):
@@ -49,23 +78,24 @@ class BaseExtended(Base):
 
         return res
 
-    def update_row(self, data, filter_id=''):
+    @classmethod
+    def update_row(cls, data):
 
         # if call from class
-        if isinstance(self, api.DeclarativeMeta):
-            if not filter_id:
+        if isinstance(cls, api.DeclarativeMeta):
+            if cls.unique_search_field not in data.keys():
                 return {'success': False, 'result': 'Missing filter_id argument'}
-            obj = self.session.query(self).filter(getattr(self, self.unique_search_field) == filter_id)
+            obj = cls.query(cls).filter(getattr(cls, cls.unique_search_field) == data[cls.unique_search_field])
 
-        # if call from class
+        # if call from object
         else:
-            attr = getattr(self.__class__, self.unique_search_field)
-            obj = self.session.query(self.__class__).filter(attr == (getattr(self, self.unique_search_field)))
+            attr = getattr(cls, cls.unique_search_field)
+            obj = cls.query(cls).filter(attr == (getattr(cls, cls.unique_search_field)))
 
         if obj.count() == 1:
             try:
                 obj.update(data)
-                self.session.commit()
+                cls.session.commit()
                 result = {'success': True, 'result': ''}
             except:
                 result = {'success': False, 'result': traceback_format_exc()}
@@ -73,7 +103,7 @@ class BaseExtended(Base):
         else:
             result = {'success': False, 'result': f'Instead of 1 - {obj.count()} object was found'}
 
-        self.session.close()
+        cls.session.close()
         return result
 
     @classmethod
@@ -126,7 +156,7 @@ class BaseExtended(Base):
     def query_objects(cls, q_selector='', start_date='', end_date='',  q_filter='', between_argument=''):
         res = cls.query(cls) if not q_selector else q_selector
 
-        if isinstance(q_filter, BinaryExpression):
+        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
             res = res.filter(q_filter)
 
         if start_date and end_date:
@@ -150,7 +180,7 @@ class BaseExtended(Base):
         res = cls.query(cls.id)
 
 
-        if isinstance(q_filter, BinaryExpression):
+        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
             res = res.filter(q_filter)
 
         if start_date and end_date:
@@ -164,7 +194,7 @@ class BaseExtended(Base):
         res = init_dict
         sorting_objects = cls.query(getattr(cls, sort_argument))
 
-        if isinstance(q_filter, BinaryExpression):
+        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
             sorting_objects = sorting_objects.filter(q_filter)
 
         if start_date and end_date:

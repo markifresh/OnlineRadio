@@ -34,3 +34,12 @@ radio_tracks_update = radios_schemas.model('radio_tracks_update', {
     'update_time_sec': fields.Float,
     'import_date': fields.String
 })
+
+radio_tracks_export = radios_schemas.model('radio_tracks_export', {
+    'success': fields.Boolean(default=False),
+    # 'updated': fields.List(fields.String),
+    'num_tracks_requested': fields.Integer,
+    'num_tracks_exported': fields.Integer,
+    'num_tracks_added': fields.Integer,
+    'export_date': fields.String
+})
