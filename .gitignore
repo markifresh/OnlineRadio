@@ -5,3 +5,5 @@
 *.txt
 chromedriver.exe
 *.log
+
+!requirements.txt
