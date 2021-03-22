@@ -1,5 +1,5 @@
 from application.db_models.extenders_for_db_models import BaseExtended
-from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime, and_
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime, Boolean, and_
 from application.db_models import radio_db
 from sqlalchemy import or_
 from datetime import datetime
@@ -15,7 +15,7 @@ class Track(BaseExtended):
     album_name = Column(String)
     album_year = Column(String)
     duration = Column(String)
-    play_date = Column(String(30))
+    play_date = Column(DateTime)
     radio_name = Column(String, ForeignKey('radios.name'), nullable=False)
     db_import_date = Column(DateTime, ForeignKey('dbImports.import_date'))
     spotify_export_date = Column(Integer, ForeignKey('spotifyExports.export_date'))
@@ -28,13 +28,15 @@ class Track(BaseExtended):
     genre = Column(String(20))
     youtube_link = Column(String)
     created_on = Column(DateTime(), default=datetime.now)
+    liked = Column(Boolean, default=False)
 
     def __repr__(self):
-       return f"<Track(name: {self.common_name}, radio: {self.radio_name}, import time: {self.db_import_date})>"
+       return f"<Track(name: {self.common_name} [{self.play_date}], radio: {self.radio_name}, " \
+              f"import time: {self.db_import_date})>"
 
     @classmethod
     def query_tracks(cls, start_date='', end_date='', start='', end='', q_filter=''):
-        q_selector = cls.query(cls.artist, cls.title)
+        q_selector = cls.query(cls.artist, cls.title).order_by(cls.artist)
         res = cls.query_objects(q_selector=q_selector,
                                 q_filter=q_filter,
                                 start_date=start_date,
@@ -46,10 +48,20 @@ class Track(BaseExtended):
 
 
     @classmethod
-    def get_artists(cls):
-        res = [artist[0] for artist in cls.session.query(cls.artist).all()]
-        cls.session.close()
-        return sorted(set(res))
+    def get_artists(cls, start_id='', limit=''):
+        q_selector = cls.query(cls.artist.distinct())
+        res = cls.query_objects(q_selector=q_selector).order_by(cls.artist)
+        res = cls.limit_objects(res, start_id, limit).all()
+        return [artist[0] for artist in res]
+
+        # q_selector = cls.query(cls.artist)
+        # res = cls.query_objects(q_selector=q_selector).order_by(cls.artist)
+        # res = cls.limit_objects(res, start_id, end_id).all()
+        # return res
+
+    @classmethod
+    def get_artist_num(cls):
+        return {'number': cls.query(cls.artist.distinct()).count()}
 
     @classmethod
     def get_tracks_per_artist(cls, artist, start_id='', end_id=''):

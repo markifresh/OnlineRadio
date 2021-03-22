@@ -1,0 +1,67 @@
+{% include 'parts/header_open.html' %}
+
+<div class="jumbotron d-flex align-items-center min-vh-100" style="background-color: white; margin-top: -80px">
+    <div class="container pt-3 pb-2 " style="width: 350px; background-color:aliceblue">
+      {% for message in get_flashed_messages() %}
+        <div class="alert alert-danger">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message }}
+        </div>
+      {% endfor %}
+
+      <form class="needs-validation" method="POST" action="{{ url_for('auth_page.signup') }}" novalidate>
+
+        <div class="form-group email">
+          <input type="text" class="form-control" id="name" placeholder="Name Surname" required>
+        </div>
+
+        <div class="form-group email">
+          <input type="email" class="form-control" id="email" placeholder="Email" required>
+        </div>
+
+        <div class="form-group">
+          <input type="password" class="form-control" id="password" placeholder="Password" required>
+        </div>
+
+        <div class="form-group">
+          <input type="password" class="form-control" id="password2" placeholder="Confirm Password" required>
+        </div>
+
+        <hr>
+        <p>Please select interesting Radios:</p>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="allRadios">
+          <label class="form-check-label text-muted" for="allRadios">
+            Select all
+          </label>
+        </div>
+
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="DJAM">
+          <label class="form-check-label" for="DJAM">
+            DJAM
+          </label>
+        </div>
+
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="FIP">
+          <label class="form-check-label" for="FIP">
+            FIP
+          </label>
+        </div>
+
+        <hr>
+        <div class="d-flex justify-content-center">
+          <button type="submit" class="btn btn-primary" style="width:100%">Signup</button>
+        </div>
+        <p class="mt-3 text-muted text-center">Have an account?
+            <a href="{{ url_for('auth_page.login') }}">Login</a>
+        </p>
+
+
+      </form>
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='/js/signup.js') }}"></script>

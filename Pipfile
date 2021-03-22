@@ -16,6 +16,10 @@ flask-restplus = "*"
 python-dotenv = "*"
 flask-session = "*"
 flask-restx = "*"
+mutagen = "*"
+flask-login = "*"
+flask-wtf = "*"
+email-validator = "*"
 
 [requires]
 python_version = "3.7"

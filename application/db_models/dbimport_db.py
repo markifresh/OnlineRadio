@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime, timedelta
 from sqlalchemy.orm import lazyload
 from application.db_models import track_db
+from application.workers.ExtraFunc import get_date_range_list
 
 
 class DBImport(BaseExtended):
@@ -17,6 +18,7 @@ class DBImport(BaseExtended):
     num_tracks_requested = Column(Integer, default=0)
     radio_name = Column(String(20), ForeignKey('radios.name'), nullable=False)
     import_duration = Column(Float, default=0)
+    for_date = Column(DateTime)  # update_time in ms
 
     def __repr__(self):
         return f"<dbImport({self.import_date}, {self.radio_name}, " \
@@ -24,7 +26,7 @@ class DBImport(BaseExtended):
 
     @classmethod
     def query_imports(cls, start_date='', end_date='', start='', end='', q_filter=''):
-        q_selector = cls.query(cls.import_date, cls.radio_name, cls.num_tracks_added)
+        q_selector = cls.query(cls.import_date, cls.radio_name, cls.num_tracks_added).order_by(cls.import_date.desc())
         res = cls.query_objects(q_selector=q_selector,
                                 q_filter=q_filter,
                                 start_date=start_date,
@@ -32,7 +34,13 @@ class DBImport(BaseExtended):
                                 between_argument='import_date')
         res = cls.limit_objects(res, start, end).all()
 
-        return [{'import_date': imp[0], 'radio_name': imp[1], 'num_tracks_added': imp[2]} for imp in res]
+        return [{'import_date': imp[0].strftime('%Y-%m-%d %H:%M:%S'),
+                 'radio_name': imp[1],
+                 'num_tracks_added': imp[2] if imp[2] else 0} for imp in res]
+
+    @classmethod
+    def get_imports(cls, start_id='', end_id=''):
+        return cls.query_imports(start=start_id, end=end_id)
 
     @classmethod
     def get_imports_num(cls):
@@ -43,8 +51,7 @@ class DBImport(BaseExtended):
         if isinstance(import_date, str):
             import_date = datetime.strptime(import_date, '%Y-%m-%dT%H:%M:%S.%f')
 
-        q_filter = cls.import_date == import_date
-        return cls.query_objects(q_filter=q_filter).one_or_none()
+        return cls.query(cls).filter(cls.import_date == import_date).one_or_none()
 
     @classmethod
     def get_imports_per_date(cls, start_date, end_date, start_id='', end_id=''):
@@ -68,7 +75,7 @@ class DBImport(BaseExtended):
                 res[db_import.radio_name].append(db_import)
             else:
                 res[db_import.radio_name] = [db_import]
-        cls.session.close()
+        # cls.session.close()
         return res
 
     @classmethod
@@ -99,12 +106,12 @@ class DBImport(BaseExtended):
 
     @classmethod
     def get_radio_missing_import_dates(cls, radio_name, start_date=None, end_date=None):
-        calendar = cls.get_date_range_list(start_date, end_date)
+        calendar = get_date_range_list(start_date, end_date)
 
-        imports_calendar = cls.query(cls.import_date).filter(cls.radio_name == radio_name,
+        imports_calendar = cls.query(cls.import_date.distinct()).filter(cls.radio_name == radio_name,
                                                              cls.import_date.between(start_date, end_date)).all()
 
-        imports_calendar = set(import_day[0].date() for import_day in imports_calendar)
+        imports_calendar = [import_day[0].date() for import_day in imports_calendar]
         missing_days = calendar
         for import_day in imports_calendar:
             if import_day in imports_calendar:

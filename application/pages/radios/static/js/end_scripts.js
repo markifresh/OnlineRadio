@@ -98,11 +98,15 @@ function makeImportExport(elem, url){
       });
 }
 
-function importAllRadios(){
+function importAllRadios(elemID){
   let radios = document.querySelectorAll('.card .do-import');
   for (let i = 0; i < radios.length; i++)
     radios[i].click();
 }
+
+document.getElementById('importAll').addEventListener('click', function(){
+importAllRadios('importAll');
+});
 
 function liveSearch(objectsQuery){
   let searcher = document.getElementById('liveSearch');

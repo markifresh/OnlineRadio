@@ -1,0 +1,48 @@
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/navbar_search_open.html' %}
+{% include 'parts/navbar_search_close.html' %}
+{% include 'parts/navbar_close.html' %}
+
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/imports.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pagination.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
+
+
+<div class="container">
+<table class="table table-hover table-dark">
+  <thead>
+    <tr>
+      <th scope="col">Import Date</th>
+      <th scope="col">Radio Name</th>
+      <th scope="col">Tracks Added</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for import in imports %}
+    <tr>
+      <td>{{ import['import_date'] }}</td>
+      <td>{{ import['radio_name'] }}</td>
+      <td>{{ import['num_tracks_added'] }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+{% include 'parts/pagination.html' %}
+
+
+
+
+
+
+<!--<script type="text/javascript" src="{{ url_for('.static', filename='js/statistics.js') }}"></script>-->
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+</body>
+</html>

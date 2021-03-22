@@ -348,11 +348,10 @@ class SpotifyAPI:
         if isinstance(track_name, dict):
             artist, title = track_name['artist'], track_name['title']
 
-        elif isinstance(track_name, str):
+        elif isinstance(track_name, str) and '-' in track_name:
             artist, title = track_name.split('-')
 
         else:
-
             return {'success': False, 'error': True, 'result': 'Incorrect track name format', 'common_name': track_name}
 
         common_name = f'{artist} - {title}'
@@ -383,6 +382,8 @@ class SpotifyAPI:
                     'name': result['name'],
                     'id': result['id'],
                     'uri': result['uri'],
+                    # 'popularity': result['popularity'],
+                    # 'duration':result['duration_ms'],
                     'type': result['type'],
                     'album_year': result['album']['release_date'].split('-')[0],
                     'album_name': result['album']['name']}

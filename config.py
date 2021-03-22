@@ -22,7 +22,14 @@ class Config:
     # RESTX_VALIDATE = True
 
 
-class ProdConfig(Config):
+class CaptchaConfig:
+    RECAPTCHA_PUBLIC_KEY = getenv('google_captcha_public')
+    RECAPTCHA_PRIVATE_KEY = getenv('google_captcha_private')
+    RECAPTCHA_OPTIONS = {'theme': 'white'}
+    RECAPTCHA_USE_SSL = False
+
+
+class ProdConfig(Config, CaptchaConfig):
     FLASK_ENV = 'production'
     DEBUG = False
     TESTING = False
@@ -35,7 +42,7 @@ class ProdConfig(Config):
     HOST = '0.0.0.0'
 
 
-class DevConfig(Config):
+class DevConfig(Config, CaptchaConfig):
     FLASK_ENV = 'development'
     DEBUG = True
     TESTING = True
@@ -50,10 +57,10 @@ class DevConfig(Config):
 
 
 class APIConfig:
-    radio_api_key = getenv('radio_api_key')
-    spotify_api_id = getenv('spotify_api_id')
-    spotify_api_key = getenv('spotify_api_key')
-    youtube_api_key = getenv('youtube_api_key')
+    radiofrance_api_key = getenv('RADIOFRANCE_API_KEY')
+    spotify_api_id = getenv('SPOTIFY_API_ID')
+    spotify_api_key = getenv('SPOTIFY_API_KEY')
+    youtube_api_key = getenv('YOUTUBE_API_KEY')
 
 
 class RadioConfig:
@@ -87,3 +94,4 @@ class SpotifyConfig:
 
 class DBConfig:
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'
+

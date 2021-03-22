@@ -50,26 +50,33 @@ class Track(Resource):
     #     return {'result': track_db.Track.get_track(common_name)}
 
 
-
-
 @tracks_api.route('/artists')
 class Artists(Resource):
-    @tracks_api.expect(limit_req, validate=True)
+    @tracks_api.expect(limit_req, from_id_req, validate=True)
     def get(self):
         """ List of all Artists of DB """
-        return {'result': track_db.Track.get_artists()}
+        limit_req = request.args.get('limit')
+        from_id_req = request.args.get('from_id')
+        return track_db.Track.get_artists(from_id_req, limit_req)
 
 @tracks_api.route('/artists/<artist_name>')
 # @tracks_api.response(404, 'Artist not found')
 @tracks_api.param('artist_name', 'Name of an artist')
 class ArtistTrack(Resource):
-    @tracks_api.expect(limit_req, validate=True)
+    @tracks_api.expect(limit_req, from_id_req, validate=True)
     @tracks_api.marshal_list_with(track_brief)
     def get(self, artist_name):
-        """ List of all Artists of DB """
-        limit = request.args.get('limit')
-        return track_db.Track.get_tracks_per_artist(artist=artist_name, end_id=limit)
+        """ List artist's tracks """
+        limit_req = request.args.get('limit')
+        from_id_req = request.args.get('from_id')
+        return track_db.Track.get_tracks_per_artist(artist=artist_name, start_id=from_id_req, end_id=limit_req)
 
+@tracks_api.route('/artists/num')
+class ArtistisNumber(Resource):
+
+    def get(self):
+        """ Number of artists in DB """
+        return track_db.Track.get_artist_num()
 
 @tracks_api.route('/reviewed')
 class ReviewedTracks(Resource):
@@ -95,7 +102,7 @@ class TracksNumber(Resource):
 
     def get(self):
         """ Number of tracks in DB """
-        return {'result': track_db.Track.get_tracks_num()}
+        return track_db.Track.get_tracks_num()
 
 
 @tracks_api.route('/num/reviewed')
@@ -120,7 +127,6 @@ class NotReviewedTracksNumber(Resource):
 class Tracks4Date(Resource):
     @tracks_api.marshal_list_with(track_brief)
     @tracks_api.expect(date_range_req, limit_req, validate=True)
-    @tracks_api.expect(limit_req, validate=True)
     def get(self):
         """ Tracks per date range """
         limit = request.args.get('limit')

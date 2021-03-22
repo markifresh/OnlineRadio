@@ -2,7 +2,7 @@ from application.db_models import spotifyexport_db as se_db
 from flask_restx import Namespace, Resource
 from flask import request
 from application.schema_models.spotifyexports_schemas import se_brief, se_full, se_num
-from application.schema_models.validators import validate_date_range, date_range_req, limit_req
+from application.schema_models.validators import validate_date_range, date_range_req, limit_req, from_id_req
 
 spotifyexports_api = Namespace('SpotifyExports', description='Exports of new tracks')
 
@@ -11,9 +11,12 @@ spotifyexports_api = Namespace('SpotifyExports', description='Exports of new tra
 class SEs(Resource):
 
     @spotifyexports_api.marshal_list_with(se_brief)
+    @spotifyexports_api.expect(limit_req, from_id_req, validate=True)
     def get(self):
         """ List of all Exports of DB """
-        return se_db.SpotifyExport.all()
+        limit = request.args.get('limit')
+        from_id_req = request.args.get('from_id')
+        return se_db.SpotifyExport.get_exports(from_id_req, limit)
 
 
 @spotifyexports_api.route('/<export_date>')

@@ -26,7 +26,7 @@ class SpotifyExport(BaseExtended):
 
     @classmethod
     def query_exports(cls, start_date='', end_date='', start='', end='', q_filter=''):
-        q_selector = cls.query(cls.export_date, cls.radio_name, cls.num_tracks_added)
+        q_selector = cls.query(cls.export_date, cls.radio_name, cls.num_tracks_added).order_by(cls.export_date.desc())
         res = cls.query_objects(q_selector=q_selector,
                                 q_filter=q_filter,
                                 start_date=start_date,
@@ -34,7 +34,13 @@ class SpotifyExport(BaseExtended):
                                 between_argument='export_date')
         res = cls.limit_objects(res, start, end).all()
 
-        return [{'export_date': export[0], 'radio_name': export[1], 'num_tracks_added': export[2]} for export in res]
+        return [{'export_date': export[0].strftime('%Y-%m-%d %H:%M:%S'),
+                 'radio_name': export[1],
+                 'num_tracks_exported': export[2] if export[2] else 0} for export in res]
+
+    @classmethod
+    def get_exports(cls, start_id='', end_id=''):
+        return cls.query_exports(start=start_id, end=end_id)
 
     @classmethod
     def get_exports_per_date(cls, start_date, end_date, start_id='', end_id=''):
@@ -54,8 +60,7 @@ class SpotifyExport(BaseExtended):
         if isinstance(export_date, str):
             export_date = datetime.strptime(export_date, '%Y-%m-%dT%H:%M:%S.%f')
 
-        q_filter = cls.export_date == export_date
-        return cls.query_objects(q_filter=q_filter).one_or_none()
+        return cls.query(cls).filter(cls.export_date == export_date).one_or_none()
 
     @classmethod
     def get_exports_per_radio(cls, radio_name, start_id='', end_id=''):
@@ -71,7 +76,7 @@ class SpotifyExport(BaseExtended):
                 res[export.radio_name].append(export)
             else:
                 res[export.radio_name] = [export]
-        cls.session.close()
+        # cls.session.close()
         return res
 
     @classmethod
@@ -87,7 +92,7 @@ class SpotifyExport(BaseExtended):
         for radio in radios:
             res[radio] = res[radio] + 1 if radio in res.keys() else 1
 
-        cls.session.close()
+        # cls.session.close()
         return res
 
     @classmethod

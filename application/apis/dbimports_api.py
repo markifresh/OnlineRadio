@@ -2,7 +2,7 @@ from application.db_models import dbimport_db
 from flask import request
 from flask_restx import Namespace, Resource
 from application.schema_models.dbimports_schemas import di_brief, di_full, di_num, di_num_per_radios
-from application.schema_models.validators import validate_date_range, date_range_req, limit_req
+from application.schema_models.validators import validate_date_range, date_range_req, limit_req, from_id_req
 
 dbimports_api = Namespace('DBImports', description='Imports of new tracks')
 
@@ -11,9 +11,12 @@ dbimports_api = Namespace('DBImports', description='Imports of new tracks')
 class DBImports(Resource):
 
     @dbimports_api.marshal_list_with(di_brief)
+    @dbimports_api.expect(limit_req, from_id_req, validate=True)
     def get(self):
         """ List of all Imports of DB """
-        return dbimport_db.DBImport.all()
+        limit = request.args.get('limit')
+        from_id_req = request.args.get('from_id')
+        return dbimport_db.DBImport.get_imports(from_id_req, limit)
 
 
 @dbimports_api.route('/<import_date>')

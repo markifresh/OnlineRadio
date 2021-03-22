@@ -1,11 +1,11 @@
 from requests import get
-import secret_data
+from os import getenv
 from json import loads as json_loads
 from urllib.parse import urlencode, quote
 
 class YouTubeAPI:
     def __init__(self):
-        self.key = secret_data.youtube_api_key
+        self.key = getenv('YOUTUBE_API_KEY')
         self.main_url = 'https://www.googleapis.com/youtube'
         self.api_version = 'v3'
         self.url = f'{self.main_url}/{self.api_version}/'

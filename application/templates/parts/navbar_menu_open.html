@@ -14,8 +14,12 @@
                href="{{ url_for('artists.artists_list') }}">Artists</a>
 
             <a class="btn btn-outline-secondary my-sm-0" >Spotify Albums</a>
-            <a class="btn btn-outline-secondary my-sm-0" >Tracks Import</a>
-            <a class="btn btn-outline-secondary my-sm-0" >Tracks Export</a>
+
+            <a class="btn btn-outline-secondary my-sm-0"
+                href="{{ url_for('imports.imports_list') }}">Tracks Imports</a>
+
+            <a class="btn btn-outline-secondary my-sm-0"
+                href="{{ url_for('exports.exports_list') }}">Tracks Exports</a>
 
             <a class="btn btn-outline-secondary my-sm-0"
                href="{{ url_for('statistics.statistics_graphs') }}">Statistics</a>

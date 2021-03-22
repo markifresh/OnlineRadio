@@ -3,7 +3,7 @@ from flask_restx import Namespace, fields
 di_schemas = Namespace('di_schemas', description='Input Output schemas for DBImports')
 
 di_brief = di_schemas.model('di_brief', {
-    'import_date': fields.DateTime(required=True, description='Date of import'),
+    'import_date': fields.String,
     'radio_name': fields.String,
     'num_tracks_added': fields.Integer
 })

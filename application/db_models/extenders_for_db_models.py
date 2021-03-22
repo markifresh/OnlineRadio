@@ -21,37 +21,10 @@ class BaseExtended(Base):
     query = session.query
 
     @classmethod
-    def get_date_range_list(cls, start_date=None, end_date=None):
-        if not end_date:
-            end_date = datetime.now().date()
-        else:
-            if isinstance(end_date, str) and '-' in end_date:
-                day, month, year = end_date.split('-')[:3]  # 06/09/2020
-                day, month, year = int(day), int(month), int(year)
-                end_date = datetime(year=year, month=month, day=day)
-
-        if not start_date:
-            start_date = end_date - timedelta(days=30)
-        else:
-            if isinstance(start_date, str) and '-' in start_date:
-                day, month, year = start_date.split('-')[:3]  # 06/09/2020
-                day, month, year = int(day), int(month), int(year)
-                start_date = datetime(year=year, month=month, day=day)
-
-        if start_date > end_date:
-            start_date, end_date = end_date, start_date
-
-        calendar = []
-        day_current = start_date
-        while day_current <= end_date:
-            calendar.append(day_current)
-            day_current += timedelta(days=1)
-
-        return calendar
-
-    @classmethod
     def all(cls):
-        return cls.session.query(cls).all()
+        res = cls.session.query(cls).all()
+        # cls.session.close()
+        return res
 
     @classmethod
     def to_json(cls, db_objects):
@@ -103,7 +76,7 @@ class BaseExtended(Base):
         else:
             result = {'success': False, 'result': f'Instead of 1 - {obj.count()} object was found'}
 
-        cls.session.close()
+        # cls.session.close()
         return result
 
     @classmethod
@@ -124,7 +97,7 @@ class BaseExtended(Base):
             cls.session.rollback()
             result = {'success': False, 'result': traceback_format_exc()}
 
-        cls.session.close()
+        # cls.session.close()
         return result
 
     # @classmethod
@@ -156,7 +129,7 @@ class BaseExtended(Base):
     def query_objects(cls, q_selector='', start_date='', end_date='',  q_filter='', between_argument=''):
         res = cls.query(cls) if not q_selector else q_selector
 
-        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
+        if isinstance(q_filter, (BinaryExpression, BooleanClauseList)):
             res = res.filter(q_filter)
 
         if start_date and end_date:
@@ -180,7 +153,7 @@ class BaseExtended(Base):
         res = cls.query(cls.id)
 
 
-        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
+        if isinstance(q_filter, (BinaryExpression, BooleanClauseList)):
             res = res.filter(q_filter)
 
         if start_date and end_date:
@@ -194,7 +167,7 @@ class BaseExtended(Base):
         res = init_dict
         sorting_objects = cls.query(getattr(cls, sort_argument))
 
-        if isinstance(q_filter, BinaryExpression) or isinstance(q_filter, BooleanClauseList):
+        if isinstance(q_filter, (BinaryExpression, BooleanClauseList)):
             sorting_objects = sorting_objects.filter(q_filter)
 
         if start_date and end_date:

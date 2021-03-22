@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session
 from application.db_models.track_db import Track
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
+from flask_login import login_required
 
 tracks = Blueprint('tracks', __name__, template_folder='templates', static_folder='static')
 
@@ -13,7 +14,9 @@ tracks = Blueprint('tracks', __name__, template_folder='templates', static_folde
 # admin = Blueprint('admin', __name__, static_folder='static')
 # url_for('admin.static', filename='style.css')
 
+
 @tracks.route('/')
+@login_required
 def tracks_list():
     tracks_data = Track.get_tracks(end_id=15)
     return render_template('tracks.html', tracks_data=tracks_data)

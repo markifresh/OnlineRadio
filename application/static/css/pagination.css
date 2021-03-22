@@ -1,0 +1,22 @@
+.pagination a{
+    background-color: #343a40ba;
+    color: white;
+    border: none;
+    outline: none ;
+}
+
+
+.dropdown a{
+    background-color: #343a40ba;
+    color: white;
+    border: none;
+    outline: none ;
+}
+
+.page-item.disabled .page-link{
+background-color: #343a40ba;
+}
+
+.page-item.active .page-link{
+background-color: #49525b;
+}

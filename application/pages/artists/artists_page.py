@@ -15,5 +15,5 @@ artists = Blueprint('artists', __name__, template_folder='templates', static_fol
 
 @artists.route('/')
 def artists_list():
-    artists = Track.get_artists()
+    artists = Track.get_artists(limit=15)
     return render_template('artists.html', artists=artists)

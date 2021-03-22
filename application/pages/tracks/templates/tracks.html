@@ -3,9 +3,13 @@
 {% include 'parts/navbar_menu_open.html' %}
 {% include 'parts/login_as.html' %}
 {% include 'parts/navbar_menu_close.html' %}
-{% include 'parts/navbar_search.html' %}
+{% include 'parts/navbar_search_open.html' %}
+{% include 'parts/navbar_search_close.html' %}
 {% include 'parts/navbar_close.html' %}
+
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/tracks.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pagination.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
 
 
 <div class="container">
@@ -27,28 +31,9 @@
 </table>
 </div>
 
-<div class="pagination justify-content-between mx-3">
-<nav aria-label="Page navigation example justify-content-end">
-  <ul id='pageSelect' class="pagination pagination-dark justify-content-start">
-    <li class="prevPage page-item disabled"><a class="page-link"><--</a>
-    <li class="page-item active"><a class="page firstPage page-link">1</a></li>
-    <li class="page-item"><a class="page page-link">2</a></li>
-    <li class="page-item"><a class="page borderPage page-link">3</a></li>
-    <li class="page-item disabled"><a class="lastPage page-link">from <span id="totalPages">98</span></a></li>
-    <li class="nextPage page-item"><a class="page-link">--></a>
-    </li>
-  </ul>
 
-</nav>
-  <ul id='limitSelect' class="pagination pagination-dark justify-content-start">
-    <li class="page-item disabled"><a class="page-link">Per Page:</a></li>
-    <li class="page-item active"><a class="page-link">15</a></li>
-    <li class="page-item"><a class="page-link">30</a></li>
-    <li class="page-item"><a class="page-link">50</a></li>
-  </ul>
+{% include 'parts/pagination.html' %}
 
-    </div>
-  </div>
 
 
 

@@ -3,7 +3,10 @@
 {% include 'parts/navbar_menu_open.html' %}
 {% include 'parts/login_as.html' %}
 {% include 'parts/navbar_menu_close.html' %}
-{% include 'parts/navbar_search.html' %}
+{% include 'parts/navbar_search_open.html' %}
+<a id='importAll' class="btn btn-outline-secondary my-sm-0 mr-2" >Import All</a>
+{% include 'parts/navbar_search_close.html' %}
+
 {% include 'parts/navbar_close.html' %}
 <script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/radios.css') }}">

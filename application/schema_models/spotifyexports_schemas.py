@@ -3,8 +3,9 @@ from flask_restx import Namespace, fields
 se_schemas = Namespace('se_schemas', description='Input Output schemas for SpotifyExports')
 
 se_brief = se_schemas.model('se_brief', {
-    'export_date': fields.DateTime(required=True, description='Date of export'),
-    'radio_name': fields.String
+    'export_date': fields.String,
+    'radio_name': fields.String,
+    'num_tracks_exported': fields.Integer
 })
 
 se_full = se_schemas.model('se_full', {

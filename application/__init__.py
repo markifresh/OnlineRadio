@@ -2,6 +2,7 @@ from flask import Flask, _app_ctx_stack
 # from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import scoped_session
 from flask_restx import Api
+from flask_login import LoginManager
 from flask_restx import fields
 from config import DevConfig, ProdConfig
 
@@ -12,6 +13,7 @@ from config import DevConfig, ProdConfig
 
 # Globally accessible libraries
 #db = SQLAlchemy()
+login_manager = LoginManager()
 
 def create_app(confConfClass):
     """Initialize the core application."""
@@ -21,11 +23,12 @@ def create_app(confConfClass):
     api = Api(app,
               version='1.0',
               title='OnlineRadio API',
-              description='Read and Try this API',
+              description='API for online Radio',
               # doc='/api/docs/'
               )
     #
     # app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
+
 
     # Initialize Plugins
     #db.init_app(app)
@@ -33,6 +36,7 @@ def create_app(confConfClass):
     db_session = create_db(confConfClass)
     app.db_session = scoped_session(db_session, scopefunc=_app_ctx_stack.__ident_func__)
 
+    login_manager.init_app(app)
 
     with app.app_context():
         # # Include our Routes
@@ -49,7 +53,9 @@ def create_app(confConfClass):
 
         
         
-        
+        from application.pages.auth.auth_page import auth_page
+        app.register_blueprint(auth_page, url_prefix='/')
+
         from .pages.welcome import welcome_page
         app.register_blueprint(welcome_page.welcome, url_prefix='/welcome')
         
@@ -67,6 +73,13 @@ def create_app(confConfClass):
 
         from application.pages.artists.artists_page import artists
         app.register_blueprint(artists, url_prefix='/artists')
+
+        from application.pages.tracks_imports.imports_page import imports
+        app.register_blueprint(imports, url_prefix='/imports')
+
+        from application.pages.tracks_exports.exports_page import exports
+        app.register_blueprint(exports, url_prefix='/exports')
+
 
         # tracks = api.model('tracks', {
         #     'artist': fields.String(required=True, description='title of a track'),
@@ -96,10 +109,10 @@ def create_app(confConfClass):
         api.add_namespace(tracks_api, '/api/tracks')
 
         from application.apis.dbimports_api import dbimports_api
-        api.add_namespace(dbimports_api, '/api/dbimports')
+        api.add_namespace(dbimports_api, '/api/imports')
 
         from application.apis.spotifyexports_api import spotifyexports_api
-        api.add_namespace(spotifyexports_api, '/api/se')
+        api.add_namespace(spotifyexports_api, '/api/exports')
 
         from application.apis.radio_tracks_api import radio_tracks_api
         api.add_namespace(radio_tracks_api, '/api/radio_tracks')

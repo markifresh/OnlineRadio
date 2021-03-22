@@ -36,6 +36,7 @@ padding: 0.1,
      roughness: 4,
 //     font: 1,
  //    fillStyle: 'solid'
+
  });
 }
 
@@ -59,7 +60,11 @@ function buildGraphic(url, objectID){
 buildGraphic("/api/radio_tracks/per_radios/num", 'tracksNum');
 buildGraphic("/api/radio_tracks/per_radios/num/not_reviewed", 'tracksReviewedNot');
 buildGraphic("/api/radio_tracks/per_radios/num/reviewed", 'tracksReviewed');
-buildGraphic("/api/dbimports/per_radios/num/", 'importsNum');
+buildGraphic("/api/imports/per_radios/num/", 'importsNum');
+
+setTimeout(function(){
+  document.getElementById('graphics').style.display='';
+}, 150)
 //
 //'Number of tracks per radio'
 //'Number of not reviewed tracks per radio'

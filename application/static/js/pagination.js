@@ -1,7 +1,52 @@
-var totalPages = document.getElementById('totalPages').innerText;
+var artistsPage = location.pathname.includes('artists');
+var objectNum = 0;
+
+if(artistsPage)
+  url = '/api/tracks' + location.pathname + 'num';
+else
+  url = '/api' + location.pathname + 'num';
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      objectNum = data.number;
+      setTotalPages();
+    })
+
+
+function setTotalPages(){
+let pageLimit = parseInt(document.querySelector('#limitSelect .active a').innerText);
+let pageNumbers = Math.round(objectNum / pageLimit);
+let pages = document.querySelectorAll('#pageSelect .page');
+let prevNextBtn = document.querySelectorAll('a.back-next');
+
+if(pageNumbers < objectNum / pageLimit)
+  pageNumbers += 1;
+
+document.getElementById('totalPages').innerText = pageNumbers;
+
+  for(let i of pages)
+    {
+        if(Number(i.innerText) > pageNumbers && i.style.display == '')
+            i.style.display = 'none';
+
+        else if (Number(i.innerText) <= pageNumbers && i.style.display == 'none')
+            i.style.display = '';
+    }
+
+  for(let i of prevNextBtn)
+    {
+        if(pageNumbers  <= 3 && i.style.display == '')
+            i.style.display = 'none';
+
+        else if(pageNumbers > 3 && i.style.display == 'none')
+            i.style.display = '';
+    }
+}
+
 
 
 function pagesNextRange(){
+  let totalPages = document.getElementById('totalPages').innerText;
   let borderPage = document.querySelector('.borderPage').parentElement;
   let pages = document.querySelectorAll('.page');
   if(pages[pages.length-1].innerText !==
@@ -95,18 +140,25 @@ function nextKey(){
 }
 
 
-function getData(url){
-let curPage = Number(document.querySelector('#pageSelect .active').innerText);
-let perPage = Number(document.querySelector('#limitSelect .active').innerText);
-let from = (curPage - 1) * perPage;
-url += '/?limit=' + perPage + '&from_id=' + from
-console.log(url);
-fetch(url)
-  .then(response => response.json())
-  .then(data => {
-    console.log(data);
-    setData(data);
-  })
+function getData(){
+  let url = '';
+
+  if(artistsPage)
+    url = '/api/tracks' + location.pathname.slice(0, -1);
+  else
+    url = '/api' + location.pathname.slice(0, -1);
+
+  let curPage = Number(document.querySelector('#pageSelect .active').innerText);
+  let perPage = Number(document.querySelector('#limitSelect .active').innerText);
+  let from = (curPage - 1) * perPage;
+  url += '?limit=' + perPage + '&from_id=' + from
+  // console.log(url);
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      // console.log(data);
+      setData(data);
+    })
 }
 
 function setData(data){
@@ -115,11 +167,21 @@ function setData(data){
   let newTbody = document.createElement('tbody');
   for (let i = 0; i < data.length; i++)
       {
+          // console.log(data[i]);
           let newTr = document.createElement('tr');
-          let innerTds = '<td>' + data[i].artist + '</td>'
-          innerTds += '<td>' + data[i].title + '</td>'
+          let innerTds = '';
+
+          if(artistsPage)
+            innerTds = '<td>' + data[i] + '</td>';
+
+          else
+          {
+            for (let objKey of Object.values(data[i]))
+            innerTds += '<td>' + objKey + '</td>';
+          }
+
           newTr.innerHTML = innerTds;
-          console.log(newTr.innerHTML);
+          // console.log(newTr.innerHTML);
           newTbody.appendChild(newTr)
       }
 
@@ -135,15 +197,15 @@ if(curElem.classList.contains('page') && !curPar.classList.contains('active')){
     curPar.classList.add('active');
     if(document.querySelector('.borderPage').parentElement.classList.contains('active'))
       pagesNextRange();
-    getData('/api/tracks');
+    getData();
   }
 if(curPar.classList.contains('prevPage'))
   {backKey();
-  getData('/api/tracks');}
+  getData();}
 
 if(curPar.classList.contains('nextPage'))
   {nextKey();
-    getData('/api/tracks');}
+    getData();}
 
 nextPrevBtn();
 
@@ -157,7 +219,8 @@ document.getElementById('limitSelect').addEventListener('click', function(){
     if(!curPar.classList.contains('active')){
       document.querySelector('#limitSelect .active').classList.remove('active');
       curPar.classList.add('active');
-      getData('/api/tracks');
+      getData();
+      setTotalPages();
     }
   }
 
