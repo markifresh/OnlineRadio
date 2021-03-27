@@ -15,5 +15,8 @@ radios = Blueprint('radios', __name__, template_folder='templates', static_folde
 
 @radios.route('/')
 def radios_list():
+    from application.music_services.Deezer import Deezer
+    dz = Deezer()
+    dz.set_token(session['oauth']['token'])
     radios_data = Radio.get_data_for_radios_page()
     return render_template('radios_list.html', radios=radios_data)

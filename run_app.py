@@ -9,5 +9,7 @@ if __name__ == "__main__":
     app.run(host=cur_conf.HOST)
 
 
+
+
 # pip3 freeze > requirements.txt
 # pipenv run pip freeze > requirements.txt
