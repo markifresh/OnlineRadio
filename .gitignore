@@ -1,9 +1,9 @@
 **/*.sqlite
 **/__pycache__
 **/.idea*
-.env
 *.txt
-chromedriver.exe
 *.log
+.env
+chromedriver.exe
 
 !requirements.txt

@@ -91,6 +91,20 @@ class SpotifyConfig:
     TRACKS_SEARCH_LIMIT = 100
     TRACKS_ADD_LIMIT = 100
 
+class DeezerConfig:
+    DEEZER_AUTH_URL = "https://connect.deezer.com/oauth/auth.php"
+    DEEZER_TOKEN_URL = "https://connect.deezer.com/oauth/access_token.php"
+    DEEZER_API_BASE_URL = "https://api.deezer.com/"
+    # DEEZER_API_VERSION = "v1"
+    # DEEZER_API_URL = f"{DEEZER_API_BASE_URL}/{DEEZER_API_VERSION}"
+    SCOPE = "basic_access,manage_library"
+    CLIENT_ID = getenv('DEEZER_CLIENT_ID')
+    CLIENT_SECRET = getenv('DEEZER_CLIENT_SECRET')
+    PLAYLISTS_REQUEST_LIMIT = 50
+    PLAYLIST_TRACKS_REQUEST_LIMIT = 100
+    TRACKS_SEARCH_LIMIT = 100
+    TRACKS_ADD_LIMIT = 100
+
 
 class DBConfig:
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'

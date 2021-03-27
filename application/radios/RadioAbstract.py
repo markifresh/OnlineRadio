@@ -4,8 +4,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class RadioAbstract(ABC):
-
-    radio_id=''
+    radio_id = ''
     url = ''
     tracks_request_url = ''
     stream_url = ''
