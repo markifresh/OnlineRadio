@@ -61,13 +61,16 @@ class Djam(RadioAbstract):
                     title = common_name[0].strip()
                     artist = ('-'.join(common_name[1:])).strip()
                     common_name = f'{artist} - {title}'
-                    res_list.append({
+                    to_add = {
                         'artist': artist,
                         'title': title,
                         'play_date': track_play_date,
                         'common_name': common_name,
                         'genre': 'djam'
-                    })
+                    }
+
+                    if to_add not in res_list:
+                        res_list.append(to_add)
 
         with ThreadPoolExecutor(max_workers=20) as executor:
             executor.map(get_jam_tracks_threads, dates_list)

@@ -109,13 +109,15 @@ class Fip(RadioAbstract):
                     artist = ','.join(track.get('mainArtists', '')).strip()
                     title = track.get('title', '').strip()
                     common_name = f'{artist} - {title}'
-                    res_list.append({'album_name': track.get('albumTitle', ''),
+                    to_add = {'album_name': track.get('albumTitle', ''),
                                      'common_name': common_name,
                                      'artist': artist,
                                      'title': title,
                                      'play_date': track_play_date,
                                      'radio_name': self.radio_id,
-                                     'genre': genre})
+                                     'genre': genre}
+                    if to_add not in res_list:
+                        res_list.append(to_add)
 
         with ThreadPoolExecutor(max_workers=15) as executor:
             executor.map(get_tracks_by_threads, dates_list)
