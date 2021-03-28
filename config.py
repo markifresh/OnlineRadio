@@ -77,12 +77,17 @@ class RadioConfig:
                  'url': 'https://www.fip.fr/',
                  'tracks_request_url': url_api_open_radio}
 
-class SpotifyConfig:
+
+class MusicService:
+    DEFAULT_PLAYLIST_DESCRIPTION = 'playlist for radio_app'
+
+
+class SpotifyConfig(MusicService):
     SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
     SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
     SPOTIFY_API_BASE_URL = "https://api.spotify.com"
     SPOTIFY_API_VERSION = "v1"
-    SPOTIFY_API_URL = f"{SPOTIFY_API_BASE_URL}/{SPOTIFY_API_VERSION}"
+    SPOTIFY_API_URL = f"{SPOTIFY_API_BASE_URL}/{SPOTIFY_API_VERSION}/"
     SCOPE = "playlist-modify-public playlist-modify-private playlist-read-private"
     CLIENT_ID = APIConfig.spotify_api_id
     CLIENT_KEY = APIConfig.spotify_api_key

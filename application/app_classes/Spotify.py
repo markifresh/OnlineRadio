@@ -130,7 +130,7 @@ class SpotifyAPI:
     def with_flask(self):
         provider_url = "https://accounts.spotify.com/authorize"
         params = urlencode({
-            'client_id': config.spotify_api_id,
+            'client_id': config.SpotifyConfig.SPOTIFY_API_URL,
             'scope': ['user-read-email', 'user-follow-read'],
             'redirect_uri': 'http://127.0.0.1:5000/spotify/callback',
             'response_type': 'code'
