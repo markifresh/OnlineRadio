@@ -28,7 +28,7 @@ class MSAbstract(ABC):
     # def find_track(self, common_name):
     #     pass
 
-    def find_tracks(self):
+    def find_tracks(self, tracks_list):
         pass
 
 
@@ -36,9 +36,9 @@ class MSAbstract(ABC):
     def token_expired(self):
         return self.token and self.token_expiration_time < datetime.now()
 
-    @abstractmethod
-    def create_token(self):
-        pass
+    # @abstractmethod
+    # def create_token(self):
+    #     pass
 
     def set_token(self, token, expires_in_sec):
         self.token = token
@@ -48,14 +48,14 @@ class MSAbstract(ABC):
     def get_user_info(self):
         pass
 
-#     @abstractmethod
-#     def create_playlist(self, name):
-#         pass
-#
-#     @abstractmethod
-#     def sort_playlist(self):
-#         pass
-#
+    @abstractmethod
+    def create_playlist(self, name):
+        pass
+
+    @abstractmethod
+    def sort_playlist(self):
+        pass
+
     @abstractmethod
     def get_user_playlists(self):
         pass
@@ -63,14 +63,18 @@ class MSAbstract(ABC):
     @abstractmethod
     def get_user_radios_playlists(self):
         pass
-#
-#     @abstractmethod
-#     def get_playlist_tracks(self):
-#         pass
-#
-#     @abstractmethod
-#     def add_track_to_playlist(self):
-#         pass
+
+    @abstractmethod
+    def get_user_playlist_by_name(self, playlist_name):
+        pass
+
+    @abstractmethod
+    def get_playlist_tracks(self, playlist_id):
+        pass
+
+    @abstractmethod
+    def add_track_to_playlist(self, playlist_id, track_id):
+        pass
 #
 #     @abstractmethod
 #     def add_tracks_to_playlist(self):
