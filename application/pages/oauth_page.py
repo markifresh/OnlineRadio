@@ -1,25 +1,30 @@
 from flask import redirect, url_for, Blueprint, request, current_app, session
-from config import SpotifyConfig as auth_config
-from config import DeezerConfig
+from config import SpotifyConfig, DeezerConfig
+from application.music_services.Spotify import Spotify
+from application.music_services.Deezer import Deezer
 from json import loads as json_loads
 from requests import post as req_post
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
-from application.apis.spotify_api import get_user_data
-oauth_page = Blueprint('oauth', __name__, template_folder='templates')
 
+oauth_page = Blueprint('oauth', __name__, template_folder='templates')
 
 @oauth_page.route('/spotify')
 def spotify_redirect():
-    session['pre_auth_page'] = request.referrer
+    if request.referrer:
+        session['pre_auth_page'] = request.referrer
+
+    else:
+        session['pre_auth_page'] = url_for('radios.radios_list')
+
     params = urlencode({
-        'client_id': auth_config.CLIENT_ID,
-        'scope': auth_config.SCOPE,
+        'client_id': SpotifyConfig.CLIENT_ID,
+        'scope': SpotifyConfig.SCOPE,
         'redirect_uri': url_for('oauth.spotify_callback', _external=True),
         'response_type': 'code'
     })
 
-    auth_url = f'{auth_config.SPOTIFY_AUTH_URL}/?{params}'
+    auth_url = f'{SpotifyConfig.SPOTIFY_AUTH_URL}/?{params}'
     return redirect(auth_url)
 
 
@@ -30,21 +35,23 @@ def spotify_callback():
         'grant_type': 'authorization_code',
         'code': str(auth_token),
         'redirect_uri': url_for('oauth.spotify_callback', _external=True),
-        'client_id': auth_config.CLIENT_ID,
-        'client_secret': auth_config.CLIENT_KEY,
+        'client_id': SpotifyConfig.CLIENT_ID,
+        'client_secret': SpotifyConfig.CLIENT_KEY,
     }
-    post_request = req_post(auth_config.SPOTIFY_TOKEN_URL, data=code_payload)
+    post_request = req_post(SpotifyConfig.SPOTIFY_TOKEN_URL, data=code_payload)
     if post_request.status_code != 200 or 'token' not in post_request.text:
         return post_request.text
 
     response_data = json_loads(post_request.text)
-    session['oauth'] = response_data
-    session_limit = getattr(session['oauth'], 'expires_in', 3600)
-    session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=session_limit)
+    sp = Spotify(token=response_data['access_token'], expires_in_sec=response_data['expires_in'])
+    user_data = sp.get_user_info()
+    if not user_data['success']:
+        return {'success': False, 'result': 'Failed to get user data'}
 
-    session['spotify_user'] = get_user_data()['result']
-    print(session['oauth'])
-    print(session['spotify_user'])
+    session['ms_user'] = user_data['result']
+    session['oauth'] = response_data
+    session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=response_data['expires_in'])
+
     return redirect(session['pre_auth_page'] )
 
 
@@ -53,7 +60,12 @@ def spotify_callback():
 
 @oauth_page.route('/deezer')
 def deezer_redirect():
-    session['pre_auth_page'] = request.referrer
+    if request.referrer:
+        session['pre_auth_page'] = request.referrer
+
+    else:
+        session['pre_auth_page'] = url_for('radios.radios_list')
+    print('===========\n' + session['pre_auth_page'])
     params = urlencode({
         'app_id': DeezerConfig.CLIENT_ID,
         'perms': DeezerConfig.SCOPE,
@@ -72,11 +84,10 @@ def deezer_callback():
         'app_id': DeezerConfig.CLIENT_ID,
         'secret': DeezerConfig.CLIENT_SECRET,
     }
-    print(code_payload)
 
     post_request = req_post(DeezerConfig.DEEZER_TOKEN_URL, data=code_payload)
     if post_request.status_code != 200 or 'token' not in post_request.text:
-        return post_request.text
+        return {'success': False, 'result': post_request.text}
 
     token, expires_in = post_request.text.split('&')
     token = token.split('token=')[-1]
@@ -84,10 +95,12 @@ def deezer_callback():
 
     session['oauth'] = {'token': token,
                         'expiration_time': datetime.now() + timedelta(seconds=expires_in)}
-    # session_limit = getattr(session['oauth'], 'expires_in', 3600)
-    # session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=session_limit)
-    #
-    # session['spotify_user'] = get_user_data()['result']
-    print(session['oauth'])
-    # print(session['spotify_user'])
+
+    dz = Deezer(token, expires_in)
+    user_data = dz.get_user_info()
+    if not user_data['success']:
+        return {'success': False, 'result': 'Failed to get user data'}
+
+    session['ms_user'] = user_data['result']
+
     return redirect(session['pre_auth_page'])

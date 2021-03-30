@@ -1,11 +1,13 @@
 <div class="col-3 my-1" style="text-align: end">
      {% if session['oauth'] %}
           <a class="btn btn-outline-secondary my-sm-0 mr-2" >Personal info</a>
-          <a class="btn btn-outline-secondary my-sm-0 mr-2 " href="{{ session['spotify_user']['uri'] }}">
-               Logged as {{ session['spotify_user']['display_name'] }}
+          <a class="btn btn-outline-secondary my-sm-0 mr-2 " href="{{ session['ms_user']['uri'] }}">
+               Logged as {{ session['ms_user']['display_name'] }}
           </a>
      {% else %}
           <a class="btn btn-outline-secondary my-sm-0 mr-2"
-             href="{{ url_for('oauth.spotify_redirect') }}" >Log in</a>
+             href="{{ url_for('oauth.spotify_redirect') }}" >Log Spotify</a>
+          <a class="btn btn-outline-secondary my-sm-0 mr-2"
+              href="{{ url_for('oauth.deezer_redirect') }}" >Log Deezer</a>
      {% endif %}
 </div>

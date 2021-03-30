@@ -80,6 +80,7 @@ class RadioConfig:
 
 class MusicService:
     DEFAULT_PLAYLIST_DESCRIPTION = 'playlist for radio_app'
+    DEFAULT_PLAYLIST_NAME = 'Radio_'    # + Radio Name
 
 
 class SpotifyConfig(MusicService):
@@ -96,10 +97,11 @@ class SpotifyConfig(MusicService):
     TRACKS_SEARCH_LIMIT = 100
     TRACKS_ADD_LIMIT = 100
 
-class DeezerConfig:
+class DeezerConfig(MusicService):
+    DEEZER_URL = "https://www.deezer.com"
     DEEZER_AUTH_URL = "https://connect.deezer.com/oauth/auth.php"
     DEEZER_TOKEN_URL = "https://connect.deezer.com/oauth/access_token.php"
-    DEEZER_API_BASE_URL = "https://api.deezer.com/"
+    DEEZER_API_BASE_URL = "https://api.deezer.com"
     # DEEZER_API_VERSION = "v1"
     # DEEZER_API_URL = f"{DEEZER_API_BASE_URL}/{DEEZER_API_VERSION}"
     SCOPE = "basic_access,manage_library"
