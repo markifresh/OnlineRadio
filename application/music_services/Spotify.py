@@ -400,7 +400,7 @@ class Spotify(MSAbstract):
         return res
 
 
-    def create_user_playlist(self, name, description='', user_id=''):
+    def create_playlist(self, name, description='', user_id=''):
         user_id = user_id['id'] if isinstance(user_id, dict) else user_id
         if not user_id:
             res = self.get_user_info()

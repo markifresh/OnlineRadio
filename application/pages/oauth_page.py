@@ -9,14 +9,13 @@ from datetime import datetime, timedelta
 
 oauth_page = Blueprint('oauth', __name__, template_folder='templates')
 
+
+def redirect_to_previous_page():
+    return request.referrer if request.referrer else url_for('radios.radios_list')
+
+
 @oauth_page.route('/spotify')
 def spotify_redirect():
-    if request.referrer:
-        session['pre_auth_page'] = request.referrer
-
-    else:
-        session['pre_auth_page'] = url_for('radios.radios_list')
-
     params = urlencode({
         'client_id': SpotifyConfig.CLIENT_ID,
         'scope': SpotifyConfig.SCOPE,
@@ -49,10 +48,11 @@ def spotify_callback():
         return {'success': False, 'result': 'Failed to get user data'}
 
     session['ms_user'] = user_data['result']
+    session['ms_service'] = 'spotify'
     session['oauth'] = response_data
     session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=response_data['expires_in'])
 
-    return redirect(session['pre_auth_page'] )
+    return redirect(redirect_to_previous_page())
 
 
 
@@ -60,12 +60,6 @@ def spotify_callback():
 
 @oauth_page.route('/deezer')
 def deezer_redirect():
-    if request.referrer:
-        session['pre_auth_page'] = request.referrer
-
-    else:
-        session['pre_auth_page'] = url_for('radios.radios_list')
-    print('===========\n' + session['pre_auth_page'])
     params = urlencode({
         'app_id': DeezerConfig.CLIENT_ID,
         'perms': DeezerConfig.SCOPE,
@@ -102,5 +96,6 @@ def deezer_callback():
         return {'success': False, 'result': 'Failed to get user data'}
 
     session['ms_user'] = user_data['result']
+    session['ms_service'] = 'deezer'
 
-    return redirect(session['pre_auth_page'])
+    return redirect(redirect_to_previous_page())

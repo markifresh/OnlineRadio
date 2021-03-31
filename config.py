@@ -104,7 +104,7 @@ class DeezerConfig(MusicService):
     DEEZER_API_BASE_URL = "https://api.deezer.com"
     # DEEZER_API_VERSION = "v1"
     # DEEZER_API_URL = f"{DEEZER_API_BASE_URL}/{DEEZER_API_VERSION}"
-    SCOPE = "basic_access,manage_library"
+    SCOPE = "basic_access,manage_library,delete_library"
     CLIENT_ID = getenv('DEEZER_CLIENT_ID')
     CLIENT_SECRET = getenv('DEEZER_CLIENT_SECRET')
     PLAYLISTS_REQUEST_LIMIT = 50

@@ -52,9 +52,9 @@ class MSAbstract(ABC):
     def create_playlist(self, name):
         pass
 
-    @abstractmethod
-    def sort_playlist(self):
-        pass
+    # @abstractmethod
+    # def sort_playlist(self):
+    #     pass
 
     @abstractmethod
     def get_user_playlists(self):
@@ -72,17 +72,19 @@ class MSAbstract(ABC):
     def get_playlist_tracks(self, playlist_id):
         pass
 
+    #todo: check if track already in playlists
     @abstractmethod
     def add_track_to_playlist(self, playlist_id, track_id):
         pass
-#
-#     @abstractmethod
-#     def add_tracks_to_playlist(self):
-#         pass
-#
-#     @abstractmethod
-#     def remove_track_from_playlist(self):
-#         pass
+
+    #todo: check if tracks already in playlists
+    @abstractmethod
+    def add_tracks_to_playlist(self, playlist_id, tracks_ids):
+        pass
+
+    # @abstractmethod
+    # def remove_track_from_playlist(self, playlist_id, track_id):
+    #     pass
 
 
 

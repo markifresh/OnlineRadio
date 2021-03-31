@@ -168,7 +168,6 @@ class Deezer(MSAbstract):
         return self.post_requests(url=f'/playlist/{playlist_id}/tracks',
                                   params={'songs': track_id})
 
-    # todo: rewrite correct and test
     def add_tracks_to_playlist(self, playlist_id, tracks_ids):
         if not isinstance(tracks_ids, list):
             return {'success': False, 'result': f'tracks id should be a list'}
@@ -177,7 +176,32 @@ class Deezer(MSAbstract):
         for track in tracks_ids:
             if isinstance(track, dict):
                 ids_to_add += track['id'] + ','
+
+            elif isinstance(track, int) or track.isdecimal():
+                ids_to_add += str(track) + ','
+
             else:
                 return {'success': False, 'result': f'tracks should be of type dict'}
 
         return self.add_track_to_playlist(playlist_id, ids_to_add)
+
+    def remove_track_from_playlist(self, playlist_id, track_id):
+        return self.delete_requests(url=f'/playlist/{playlist_id}/tracks',
+                                    params={'songs': track_id})
+
+    def remove_tracks_from_playlist(self, playlist_id, tracks_ids):
+        if not isinstance(tracks_ids, list):
+            return {'success': False, 'result': f'tracks id should be a list'}
+
+        ids_to_remove = ''
+        for track in tracks_ids:
+            if isinstance(track, dict):
+                ids_to_remove += track['id'] + ','
+
+            elif isinstance(track, int) or track.isdecimal():
+                ids_to_remove += str(track) + ','
+
+            else:
+                return {'success': False, 'result': f'tracks should be of type dict'}
+
+        return self.remove_track_from_playlist(playlist_id, ids_to_remove)
