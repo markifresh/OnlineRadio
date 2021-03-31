@@ -7,14 +7,18 @@ from requests import post as req_post
 from urllib.parse import urlencode
 from datetime import datetime, timedelta
 
-oauth_page = Blueprint('oauth', __name__, template_folder='templates')
+oauth = Blueprint('oauth', __name__, template_folder='templates')
 
 
 def redirect_to_previous_page():
-    return request.referrer if request.referrer else url_for('radios.radios_list')
+    return request.referrer if request.referrer else url_for('oauth.auth')
 
+@oauth.route('/auth')
+def auth():
+    print(session)
+    return redirect(url_for('radios.radios_list'))
 
-@oauth_page.route('/spotify')
+@oauth.route('/spotify')
 def spotify_redirect():
     params = urlencode({
         'client_id': SpotifyConfig.CLIENT_ID,
@@ -27,7 +31,7 @@ def spotify_redirect():
     return redirect(auth_url)
 
 
-@oauth_page.route('/spotify/callback')
+@oauth.route('/spotify/callback')
 def spotify_callback():
     auth_token = request.args['code']
     code_payload = {
@@ -52,13 +56,13 @@ def spotify_callback():
     session['oauth'] = response_data
     session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=response_data['expires_in'])
 
-    return redirect(redirect_to_previous_page())
+    return redirect(url_for('oauth.auth'))
 
 
 
 
 
-@oauth_page.route('/deezer')
+@oauth.route('/deezer')
 def deezer_redirect():
     params = urlencode({
         'app_id': DeezerConfig.CLIENT_ID,
@@ -70,7 +74,7 @@ def deezer_redirect():
     return redirect(auth_url)
 
 
-@oauth_page.route('/deezer/callback')
+@oauth.route('/deezer/callback')
 def deezer_callback():
     auth_token = request.args['code']
     code_payload = {
@@ -98,4 +102,4 @@ def deezer_callback():
     session['ms_user'] = user_data['result']
     session['ms_service'] = 'deezer'
 
-    return redirect(redirect_to_previous_page())
+    return redirect(url_for('oauth.auth'))
