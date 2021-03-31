@@ -62,8 +62,8 @@ def create_app(confConfClass):
         from .pages.radios import radios_page
         app.register_blueprint(radios_page.radios, url_prefix='/radios')
 
-        from .pages.oauth_page import oauth_page
-        app.register_blueprint(oauth_page, url_prefix='/oauth')
+        from .pages.oauth_page import oauth
+        app.register_blueprint(oauth, url_prefix='/oauth')
         
         from application.pages.statistics.statistics_page import statistics
         app.register_blueprint(statistics, url_prefix='/statistics')
