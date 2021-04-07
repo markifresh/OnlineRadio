@@ -1,4 +1,4 @@
-from application.db_models import spotifyexport_db as se_db
+from application.db_models import tracks_export as se_db
 from flask_restx import Namespace, Resource
 from flask import request
 from application.schema_models.spotifyexports_schemas import se_brief, se_full, se_num
@@ -16,7 +16,7 @@ class SEs(Resource):
         """ List of all Exports of DB """
         limit = request.args.get('limit')
         from_id_req = request.args.get('from_id')
-        return se_db.SpotifyExport.get_exports(from_id_req, limit)
+        return se_db.TracksExport.get_exports(from_id_req, limit)
 
 
 @spotifyexports_api.route('/<export_date>')
@@ -26,7 +26,7 @@ class SE(Resource):
     @spotifyexports_api.marshal_with(se_full)
     def get(self, export_date):
         """ Export info by date """
-        return se_db.SpotifyExport.get_export_by_date(export_date)
+        return se_db.TracksExport.get_export_by_date(export_date)
 
     # def delete(self, export_date):
     #     """ Delete Export by date """
@@ -47,7 +47,7 @@ class SENum(Resource):
     @spotifyexports_api.marshal_with(se_num)
     def get(self):
         """ Number of all Exports of DB """
-        return se_db.SpotifyExport.get_exports_num()
+        return se_db.TracksExport.get_exports_num()
     
     
 @spotifyexports_api.route('/per_date')
@@ -59,7 +59,7 @@ class SE4Date(Resource):
         """ Exports per date range """
         limit = request.args.get('limit')
         start, end = validate_date_range()
-        return se_db.SpotifyExport.get_exports_per_date(start, end, end_id=limit)
+        return se_db.TracksExport.get_exports_per_date(start, end, end_id=limit)
 
 @spotifyexports_api.route('/num/per_date')
 class SE4DateNum(Resource):
@@ -69,4 +69,4 @@ class SE4DateNum(Resource):
     def get(self):
         """ Exports number per date range """
         start, end = validate_date_range()
-        return se_db.SpotifyExport.get_exports_per_date_num(start, end)
+        return se_db.TracksExport.get_exports_per_date_num(start, end)

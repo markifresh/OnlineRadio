@@ -1,0 +1,24 @@
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
+
+
+<div class="container">
+    {% if not session['configured'] %}
+        <h3> Looks like you don't have radios yet... Lets fix it!</h3>
+    {% else %}
+        <h3> Here is your radios</h3>
+    {% endif %}
+    <div class="list-group">
+        <button type="button" class="list-group-item list-group-item-action">Radio 1</button>
+        <button type="button" class="list-group-item list-group-item-action">Radio 2</button>
+        <button type="button" class="list-group-item list-group-item-action">Radio 3</button>
+    </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
+  </body>
+</html>
+
+
+

@@ -1,6 +1,6 @@
-from application.db_models import dbimport_db
-from application.db_models import spotifyexport_db
-from application.db_models import track_db
+from application.db_models import tracks_import
+from application.db_models import tracks_export
+from application.db_models import track
 from application.workers.ExtraFunc import get_date_range_list
 from application.workers import RadioWorker
 
@@ -10,7 +10,7 @@ from requests import post as request_post
 
 from application.db_models.extenders_for_db_models import BaseExtended
 
-from sqlalchemy import Column, Integer, String, Sequence, DateTime
+from sqlalchemy import Column, Integer, String, Sequence, DateTime, JSON
 from sqlalchemy.orm import relationship
 from traceback import format_exc as traceback_format_exc
 from datetime import datetime, timedelta, date
@@ -401,10 +401,11 @@ class  Radio(BaseExtended):
     name = Column(String(20), Sequence('radio_name_seq'), unique=True)  # id from api
     url = Column(String(80))
     stream_url = Column(String(80))
-    db_imports = relationship('dbimport_db.DBImport', lazy='dynamic')
-    spotify_exports = relationship('spotifyexport_db.SpotifyExport', lazy='dynamic')
-    tracks = relationship('track_db.Track', lazy='dynamic')
+    db_imports = relationship('tracks_import.TracksImport', lazy='dynamic')
+    spotify_exports = relationship('tracks_export.TracksExport', lazy='dynamic')
+    tracks = relationship('track.Track', lazy='dynamic')
     created_on = Column(DateTime(), default=datetime.now)
+    currently_playing = Column(JSON)    # make hybrid, based on scheduled background function/variable ?
 
     def __repr__(self):
         return f"<Radio({self.name})>"
@@ -458,21 +459,20 @@ class  Radio(BaseExtended):
         updated_tracks = []
         failed_tracks = []
         already_added_tracks = []
-
-        db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
+        db_tracks = [track[0] for track in cls.session.query(track.Track.common_name).all()]
         import_date = datetime.now()
         # import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
         if day:
-            cls.commit_data(dbimport_db.DBImport(import_date=import_date, radio_name=radio_name, for_date=day))
+            cls.commit_data(tracks_import.TracksImport(import_date=import_date, radio_name=radio_name, for_date=day))
         else:
-            cls.commit_data(dbimport_db.DBImport(import_date=import_date, radio_name=radio_name))
+            cls.commit_data(tracks_import.TracksImport(import_date=import_date, radio_name=radio_name))
         for track in radio_tracks:
             # db_session = self.create_db_session()
             # new_track = db_session.query(TrackModel).filter_by(common_name=track["common_name"]).scalar() is None
             # db_session.close()
             # if new_track:
             if track["common_name"] not in db_tracks:
-                res = cls.commit_data(track_db.Track(
+                res = cls.commit_data(track.Track(
                     common_name=track['common_name'],
                     radio_name=radio_name,
                     play_date=track['play_date'],
@@ -494,7 +494,7 @@ class  Radio(BaseExtended):
         import_duration = round((end - start_time).total_seconds(), 2)
         num_tracks_added = len(updated_tracks)
         num_tracks_requested = len(radio_tracks)
-        res = dbimport_db.DBImport.update_row(data={'import_date': import_date,
+        res = tracks_import.TracksImport.update_row(data={'import_date': import_date,
                                                     'num_tracks_added': num_tracks_added,
                                                     'num_tracks_requested': num_tracks_requested,
                                                     'import_duration': import_duration})
@@ -546,8 +546,8 @@ class  Radio(BaseExtended):
             return {}
 
         radio_dic = cls.to_json(radio)
-        radio_dic[name]['num_tracks'] = track_db.Track.get_tracks_per_radio_num(name)
-        radio_dic[name]['latest_dbimport'] = getattr(dbimport_db.DBImport.get_latest_import_for_radio(name), 'import_date', '-')
+        radio_dic[name]['num_tracks'] = track.Track.get_tracks_per_radio_num(name)
+        radio_dic[name]['latest_dbimport'] = getattr(tracks_import.TracksImport.get_latest_import_for_radio(name), 'import_date', '-')
         return radio_dic[name]
 
     @classmethod
@@ -558,13 +558,13 @@ class  Radio(BaseExtended):
     def get_data_for_radios_page(cls):
         radios = cls.all()
         for radio in radios:
-            radio.num_tracks = track_db.Track.get_tracks_per_radio_num(radio.name)
-            db_import = dbimport_db.DBImport.get_latest_import_for_radio(radio.name)
+            radio.num_tracks = track.Track.get_tracks_per_radio_num(radio.name)
+            db_import = tracks_import.TracksImport.get_latest_import_for_radio(radio.name)
             radio.latest_dbimport = db_import.import_date.strftime('%d-%m-%Y %H:%M:%S') if db_import else None
-            spotify_export = spotifyexport_db.SpotifyExport.get_latest_export_for_radio(radio.name)
+            spotify_export = tracks_export.TracksExport.get_latest_export_for_radio(radio.name)
             radio.latest_spotify_export = \
                 spotify_export.export_date.strftime('%d-%m-%Y %H:%M:%S') if spotify_export else None
-            radio.to_export_num_tracks = track_db.Track.get_tracks_exported_not_per_radio_num(radio_name=radio.name)
+            radio.to_export_num_tracks = track.Track.get_tracks_exported_not_per_radio_num(radio_name=radio.name)
         return radios
 
 
@@ -572,11 +572,11 @@ class  Radio(BaseExtended):
     def export_tracks(cls, radio_name, limit=100):
         num_tracks_added = 0
         export_date = datetime.now()
-        tracks = track_db.Track.get_tracks_exported_not_per_radio(radio_name, end_id=limit)
+        tracks = track.Track.get_tracks_exported_not_per_radio(radio_name, end_id=limit)
         # tracks = [f'{track["artist"]} - {track["title"]}' for track in tracks]
-        cls.commit_data(spotifyexport_db.SpotifyExport(export_date=export_date,
-                                                       radio_name=radio_name,
-                                                       num_tracks_requested=len(tracks)))
+        cls.commit_data(tracks_export.TracksExport(export_date=export_date,
+                                                   radio_name=radio_name,
+                                                   num_tracks_requested=len(tracks)))
 
         from application.apis.spotify_api import create_obj
         sp = create_obj()
@@ -599,14 +599,14 @@ class  Radio(BaseExtended):
                 num_tracks_added += len(res.get('added', ''))
                 for track in res['added']:
                     track['spotify_export_date'] = export_date
-                    track_db.Track.update_row(data=track)
+                    track.Track.update_row(data=track)
 
         for track in ress['failed_to_find']:
-            track_db.Track.update_row(data={'common_name': track,
+            track.Track.update_row(data={'common_name': track,
                                             'failed_to_spotify': 'True',
                                             'spotify_export_date': export_date})
 
-        spotifyexport_db.SpotifyExport.update_row(data={'export_date': export_date,
+        tracks_export.TracksExport.update_row(data={'export_date': export_date,
                                                         'num_tracks_added': num_tracks_added,
                                                         'num_tracks_requested': num_tracks_requested})
 

@@ -35,17 +35,17 @@ def set_session(config_class=''):
 
 
 def create_all_tables():
-    from .dbimport_db import DBImport
-    DBImport.create_tables()
+    from .tracks_import import TracksImport
+    TracksImport.create_tables()
 
-    from .track_db import Track
+    from .track import Track
     Track.create_tables()
 
-    from .radio_db import Radio
+    from .radio import Radio
     Radio.create_tables()
 
-    from .spotifyexport_db import SpotifyExport
-    SpotifyExport.create_tables()
+    from .tracks_export import TracksExport
+    TracksExport.create_tables()
 
 
 

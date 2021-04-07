@@ -87,6 +87,7 @@ class SpotifyConfig(MusicService):
     SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
     SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
     SPOTIFY_API_BASE_URL = "https://api.spotify.com"
+    SPOTIFY_USER_ACC_LINK = "https://open.spotify.com/user"
     SPOTIFY_API_VERSION = "v1"
     SPOTIFY_API_URL = f"{SPOTIFY_API_BASE_URL}/{SPOTIFY_API_VERSION}/"
     SCOPE = "playlist-modify-public playlist-modify-private playlist-read-private"

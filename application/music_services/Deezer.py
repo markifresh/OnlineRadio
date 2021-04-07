@@ -109,7 +109,7 @@ class Deezer(MSAbstract):
             return playlists
 
         radios_playlists = []
-        from application.db_models.radio_db import Radio
+        from application.db_models.radio import Radio
         app_playlists = [DeezerConfig.DEFAULT_PLAYLIST_NAME + radio for radio in Radio.get_all_radios()]
 
         playlists = playlists['result']

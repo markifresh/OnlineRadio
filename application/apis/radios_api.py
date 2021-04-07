@@ -1,5 +1,5 @@
-from application.db_models import radio_db
-from application.db_models import spotifyexport_db
+from application.db_models import radio
+from application.db_models import tracks_export
 from flask_restx import Namespace, Resource, fields
 from application.schema_models import radios_schemas
 
@@ -13,7 +13,7 @@ class Radios(Resource):
     @radios_api.marshal_list_with(radios_schemas.radio_brief)
     def get(self):
         """ List of all Radios of DB """
-        return radio_db.Radio.all()
+        return radio.Radio.all()
 
 
 @radios_api.route('/<name>')
@@ -24,7 +24,7 @@ class Radio(Resource):
     @radios_api.marshal_with(radios_schemas.radio_full)
     def get(self, name):
         """ Radio info by name """
-        return radio_db.Radio.get_radio_by_name(name)
+        return radio.Radio.get_radio_by_name(name)
 
     # def delete(self, name):
     #     """ Delete radio by name """
@@ -47,7 +47,7 @@ class RadiosUpdate(Resource):
     @radios_api.marshal_list_with(radios_schemas.radio_tracks_update)
     def get(self):
         """ Update all radios tracks (adds all yesterdays tracks) """
-        return radio_db.Radio.update_all_radios_tracks()
+        return radio.Radio.update_all_radios_tracks()
 
 
 @radios_api.route('/update/<name>')
@@ -58,7 +58,7 @@ class RadioUpdate(Resource):
     @radios_api.marshal_with(radios_schemas.radio_tracks_update)
     def get(self, name):
         """ Update tracks for radio (adds all yesterdays tracks) """
-        return radio_db.Radio.update_radio_tracks(name)
+        return radio.Radio.update_radio_tracks(name)
 
 
 @radios_api.route('/update/radios_list')
@@ -67,7 +67,7 @@ class RadiosListUpdate(Resource):
     @radios_api.marshal_with(radios_schemas.radios_list_update)
     def get(self):
         """ Update radios list (checks if new radios available and add them to DB) """
-        return radio_db.Radio.update_radios_list()
+        return radio.Radio.update_radios_list()
 
 
 @radios_api.route('/export/<name>')
@@ -77,7 +77,7 @@ class RadioExport(Resource):
     @radios_api.marshal_with(radios_schemas.radio_tracks_export)
     def get(self, name):
         """ Exports tracks of radio to Spotify """
-        return radio_db.Radio.export_tracks(name)
+        return radio.Radio.export_tracks(name)
 
 # @radios_api.route('/')
 # class RadioLists(Resource):

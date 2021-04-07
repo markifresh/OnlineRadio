@@ -1,4 +1,4 @@
-from application.db_models import track_db
+from application.db_models import track
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask import request
 from application.schema_models.tracks_schemas import *
@@ -22,13 +22,13 @@ class Tracks(Resource):
         """ List of Tracks of DB """
         limit = request.args.get('limit')
         from_id_req = request.args.get('from_id')
-        return track_db.Track.get_tracks(start_id=from_id_req, end_id=limit)
+        return track.Track.get_tracks(start_id=from_id_req, end_id=limit)
         # return {'result': track_db.Track.get_tracks_all(start=0, end=int(limit))}
 
     @tracks_api.expect(track_update, validate=True)
     def post(self, common_name):
         """ Add track """
-        return {'result': track_db.Track.get_track(common_name)}
+        return {'result': track.Track.get_track(common_name)}
 
 @tracks_api.route('/<common_name>')
 # @tracks_api.response(404, 'Track not found')
@@ -38,7 +38,7 @@ class Track(Resource):
     @tracks_api.marshal_with(track_full)
     def get(self, common_name):
         """ Track info by name """
-        return track_db.Track.get_track(common_name)
+        return track.Track.get_track(common_name)
 
     # def delete(self, common_name):
     #     """ Delete track by name """
@@ -57,7 +57,7 @@ class Artists(Resource):
         """ List of all Artists of DB """
         limit_req = request.args.get('limit')
         from_id_req = request.args.get('from_id')
-        return track_db.Track.get_artists(from_id_req, limit_req)
+        return track.Track.get_artists(from_id_req, limit_req)
 
 @tracks_api.route('/artists/<artist_name>')
 # @tracks_api.response(404, 'Artist not found')
@@ -69,14 +69,14 @@ class ArtistTrack(Resource):
         """ List artist's tracks """
         limit_req = request.args.get('limit')
         from_id_req = request.args.get('from_id')
-        return track_db.Track.get_tracks_per_artist(artist=artist_name, start_id=from_id_req, end_id=limit_req)
+        return track.Track.get_tracks_per_artist(artist=artist_name, start_id=from_id_req, end_id=limit_req)
 
 @tracks_api.route('/artists/num')
 class ArtistisNumber(Resource):
 
     def get(self):
         """ Number of artists in DB """
-        return track_db.Track.get_artist_num()
+        return track.Track.get_artist_num()
 
 @tracks_api.route('/reviewed')
 class ReviewedTracks(Resource):
@@ -85,7 +85,7 @@ class ReviewedTracks(Resource):
     def get(self):
         """ Reviewed tracks in DB """
         limit = request.args.get('limit')
-        return track_db.Track.get_tracks_reviewed(end_id=limit)
+        return track.Track.get_tracks_reviewed(end_id=limit)
 
 @tracks_api.route('/not_reviewed')
 class NotReviewedTracks(Resource):
@@ -94,7 +94,7 @@ class NotReviewedTracks(Resource):
     def get(self):
         """ Not reviewed tracks in DB """
         limit = request.args.get('limit')
-        return track_db.Track.get_tracks_reviewed_not(end_id=limit)
+        return track.Track.get_tracks_reviewed_not(end_id=limit)
 
 ############ Tracks Number #################
 @tracks_api.route('/num')
@@ -102,7 +102,7 @@ class TracksNumber(Resource):
 
     def get(self):
         """ Number of tracks in DB """
-        return track_db.Track.get_tracks_num()
+        return track.Track.get_tracks_num()
 
 
 @tracks_api.route('/num/reviewed')
@@ -110,7 +110,7 @@ class ReviewedTracksNumber(Resource):
 
     def get(self):
         """ Number of reviewed tracks in DB """
-        return {'result': track_db.Track.get_tracks_reviewed_num()}
+        return {'result': track.Track.get_tracks_reviewed_num()}
 
 
 @tracks_api.route('/num/not_reviewed')
@@ -118,7 +118,7 @@ class NotReviewedTracksNumber(Resource):
 
     def get(self):
         """ Number of NOT reviewed tracks in DB """
-        return {'result': track_db.Track.get_tracks_reviewed_not_num()}
+        return {'result': track.Track.get_tracks_reviewed_not_num()}
 
 
 ########### Tracks per date #################
@@ -131,7 +131,7 @@ class Tracks4Date(Resource):
         """ Tracks per date range """
         limit = request.args.get('limit')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date(start, end, end_id=limit)
+        return track.Track.get_tracks_per_date(start, end, end_id=limit)
 
 
 @tracks_api.route('/per_date/reviewed')
@@ -142,7 +142,7 @@ class Tracks4DateReviewed(Resource):
         limit = request.args.get('limit')
         start, end = validate_date_range()
 
-        return {'result': track_db.Track.get_tracks_per_date_reviewed(start, end, end_id=limit)}
+        return {'result': track.Track.get_tracks_per_date_reviewed(start, end, end_id=limit)}
 
 @tracks_api.route('/per_date/not_reviewed')
 class Tracks4DateNotReviewed(Resource):
@@ -152,7 +152,7 @@ class Tracks4DateNotReviewed(Resource):
         limit = request.args.get('limit')
         start, end = validate_date_range()
 
-        return {'result': track_db.Track.get_tracks_per_date_reviewed_not(start, end, end_id=limit)}
+        return {'result': track.Track.get_tracks_per_date_reviewed_not(start, end, end_id=limit)}
 
 ########### Tracks number per date #################
 @tracks_api.route('/num/per_date')
@@ -162,7 +162,7 @@ class Tracks4DateNum(Resource):
         """ Tracks number per date range """
         start, end = validate_date_range()
 
-        return {'result': track_db.Track.get_tracks_per_date_num(start, end)}
+        return {'result': track.Track.get_tracks_per_date_num(start, end)}
 
 
 @tracks_api.route('/num/per_date/reviewed')
@@ -172,7 +172,7 @@ class Tracks4DateReviewedNum(Resource):
         """ Reviewed Tracks number per date range """
         start, end = validate_date_range()
 
-        return {'result': track_db.Track.get_tracks_per_date_reviewed_num(start, end)}
+        return {'result': track.Track.get_tracks_per_date_reviewed_num(start, end)}
 
 
 @tracks_api.route('/num/per_date/not_reviewed')
@@ -182,6 +182,6 @@ class Tracks4DateNotReviewedNum(Resource):
         """ Not Reviewed Tracks number per date range """
         start, end = validate_date_range()
 
-        return {'result': track_db.Track.get_tracks_per_date_reviewed_not_num(start, end)}
+        return {'result': track.Track.get_tracks_per_date_reviewed_not_num(start, end)}
 
 

@@ -1,4 +1,4 @@
-from application.db_models import track_db
+from application.db_models import track
 from flask_restx import Namespace, Resource, fields, reqparse
 from flask import request
 from application.schema_models.validators import date_range_req, validate_date_range, radio_req, limit_req
@@ -16,7 +16,7 @@ class RT(Resource):
         """ List of Tracks of Radio """
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
-        return track_db.Track.get_tracks_per_radio(radio_name, end_id=limit)
+        return track.Track.get_tracks_per_radio(radio_name, end_id=limit)
 
 @radio_tracks_api.route('/reviewed')
 class RTReviewed(Resource):
@@ -26,7 +26,7 @@ class RTReviewed(Resource):
         """ List of reviewed Tracks of Radio """
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
-        return track_db.Track.get_tracks_reviewed_per_radio(radio_name, end_id=limit)
+        return track.Track.get_tracks_reviewed_per_radio(radio_name, end_id=limit)
 
 @radio_tracks_api.route('/not_reviewed')
 class RTNotReviewed(Resource):
@@ -36,7 +36,7 @@ class RTNotReviewed(Resource):
         """ List of not reviewed Tracks of Radio """
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
-        return track_db.Track.get_tracks_reviewed_not_per_radio(radio_name, end_id=limit)
+        return track.Track.get_tracks_reviewed_not_per_radio(radio_name, end_id=limit)
 
 ######### Number of tracks per radio #############
 @radio_tracks_api.route('/num')
@@ -46,7 +46,7 @@ class RTNum(Resource):
     def get(self):
         """ Number of Tracks of Radio """
         radio_name = request.args.get('radio_name')
-        return track_db.Track.get_tracks_per_radio_num(radio_name)
+        return track.Track.get_tracks_per_radio_num(radio_name)
 
 @radio_tracks_api.route('/num/reviewed')
 class RTReviewedNum(Resource):
@@ -55,7 +55,7 @@ class RTReviewedNum(Resource):
     def get(self):
         """ Number of reviewed Tracks of Radio """
         radio_name = request.args.get('radio_name')
-        return track_db.Track.get_tracks_reviewed_per_radio_num(radio_name)
+        return track.Track.get_tracks_reviewed_per_radio_num(radio_name)
 
 @radio_tracks_api.route('/num/not_reviewed')
 class RTNotReviewedNum(Resource):
@@ -64,7 +64,7 @@ class RTNotReviewedNum(Resource):
     def get(self):
         """ Number of not reviewed Tracks of Radio """
         radio_name = request.args.get('radio_name', )
-        return track_db.Track.get_tracks_reviewed_not_per_radio_num(radio_name)
+        return track.Track.get_tracks_reviewed_not_per_radio_num(radio_name)
 
 
 ############## Radio Tracks per date ###############
@@ -77,8 +77,8 @@ class RT4Date(Resource):
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_per_radio(start_date=start, end_date=end, radio_name=radio_name,
-                                                            end_id=limit)
+        return track.Track.get_tracks_per_date_per_radio(start_date=start, end_date=end, radio_name=radio_name,
+                                                         end_id=limit)
 
 @radio_tracks_api.route('/per_date/reviewed')
 class RT4DateReviewed(Resource):
@@ -89,8 +89,8 @@ class RT4DateReviewed(Resource):
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_reviewed_per_radio(start_date=start, end_date=end,
-                                                                     radio_name=radio_name, end_id=limit)
+        return track.Track.get_tracks_per_date_reviewed_per_radio(start_date=start, end_date=end,
+                                                                  radio_name=radio_name, end_id=limit)
 
 @radio_tracks_api.route('/per_date/not_reviewed')
 class RT4DateNotReviewed(Resource):
@@ -101,8 +101,8 @@ class RT4DateNotReviewed(Resource):
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_reviewed_not_per_radio(start_date=start, end_date=end,
-                                                                         radio_name=radio_name, end_id=limit)
+        return track.Track.get_tracks_per_date_reviewed_not_per_radio(start_date=start, end_date=end,
+                                                                      radio_name=radio_name, end_id=limit)
 
 
 ############## Radio Tracks Number per date ###############
@@ -114,7 +114,7 @@ class RT4DateNum(Resource):
         """ Number of Tracks of Radio per date range"""
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_per_radio_num(start_date=start, end_date=end, radio_name=radio_name)
+        return track.Track.get_tracks_per_date_per_radio_num(start_date=start, end_date=end, radio_name=radio_name)
 
 @radio_tracks_api.route('/num/per_date/reviewed')
 class RT4DateReviewedNum(Resource):
@@ -124,8 +124,8 @@ class RT4DateReviewedNum(Resource):
         """ Number of reviewed Tracks of Radio per date range """
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_reviewed_num_per_radio(start_date=start, end_date=end,
-                                                                         radio_name=radio_name)
+        return track.Track.get_tracks_per_date_reviewed_num_per_radio(start_date=start, end_date=end,
+                                                                      radio_name=radio_name)
 
 @radio_tracks_api.route('/num/per_date/not_reviewed')
 class RT4DateNotReviewedNum(Resource):
@@ -134,26 +134,26 @@ class RT4DateNotReviewedNum(Resource):
         """ Number of not reviewed Tracks of Radio per date range """
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return track_db.Track.get_tracks_per_date_reviewed_not_num_per_radio(start_date=start, end_date=end,
-                                                                             radio_name=radio_name)
+        return track.Track.get_tracks_per_date_reviewed_not_num_per_radio(start_date=start, end_date=end,
+                                                                          radio_name=radio_name)
 
 @radio_tracks_api.route('/per_radios/num')
 class RTsNotReviewedNum(Resource):
     @radio_tracks_api.marshal_with(tracks_schemas.tracks_radios_num)
     def get(self):
         """ Number of not reviewed Tracks of Radios """
-        return {'result': track_db.Track.get_tracks_per_radios_num()}
+        return {'result': track.Track.get_tracks_per_radios_num()}
 
 @radio_tracks_api.route('/per_radios/num/not_reviewed')
 class RTsNotReviewedNum(Resource):
     @radio_tracks_api.marshal_with(tracks_schemas.tracks_radios_num)
     def get(self):
         """ Number of not reviewed Tracks of Radios """
-        return {'result': track_db.Track.get_tracks_reviewed_not_num_per_radios()}
+        return {'result': track.Track.get_tracks_reviewed_not_num_per_radios()}
 
 @radio_tracks_api.route('/per_radios/num/reviewed')
 class RTsReviewedNum(Resource):
     @radio_tracks_api.marshal_with(tracks_schemas.tracks_radios_num)
     def get(self):
         """ Number of reviewed Tracks of Radios """
-        return {'result': track_db.Track.get_tracks_reviewed_num_per_radios()}
+        return {'result': track.Track.get_tracks_reviewed_num_per_radios()}

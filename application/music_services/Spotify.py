@@ -120,7 +120,9 @@ class Spotify(MSAbstract):
                 # 'country': res.get('country'),
                 'display_name': res['result'].get('display_name'),
                 'id': res['result'].get('id'),
-                'uri': res['result'].get('uri')
+                'uri': SpotifyConfig.SPOTIFY_USER_ACC_LINK + '/' + res['result'].get('id')
+                        # res['result'].get('uri')
+
             }
         return res
 

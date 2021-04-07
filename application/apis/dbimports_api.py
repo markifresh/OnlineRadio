@@ -1,4 +1,4 @@
-from application.db_models import dbimport_db
+from application.db_models import tracks_import
 from flask import request
 from flask_restx import Namespace, Resource
 from application.schema_models.dbimports_schemas import di_brief, di_full, di_num, di_num_per_radios
@@ -16,7 +16,7 @@ class DBImports(Resource):
         """ List of all Imports of DB """
         limit = request.args.get('limit')
         from_id_req = request.args.get('from_id')
-        return dbimport_db.DBImport.get_imports(from_id_req, limit)
+        return tracks_import.TracksImport.get_imports(from_id_req, limit)
 
 
 @dbimports_api.route('/<import_date>')
@@ -27,7 +27,7 @@ class DBImport(Resource):
     @dbimports_api.marshal_with(di_full)
     def get(self, import_date):
         """ Import info by date """
-        return dbimport_db.DBImport.get_import_by_date(import_date)
+        return tracks_import.TracksImport.get_import_by_date(import_date)
 
     # def delete(self, import_date):
     #     """ Delete Import by date """
@@ -47,7 +47,7 @@ class DBImportsNum(Resource):
     @dbimports_api.marshal_with(di_num)
     def get(self):
         """ Number of all Imports of DB """
-        return dbimport_db.DBImport.get_imports_num()
+        return tracks_import.TracksImport.get_imports_num()
 
 @dbimports_api.route('/per_date')
 class DBImports4Date(Resource):
@@ -58,7 +58,7 @@ class DBImports4Date(Resource):
         """ Imports per date range """
         limit = request.args.get('limit')
         start, end = validate_date_range()
-        return dbimport_db.DBImport.get_imports_per_date(start, end, end_id=limit)
+        return tracks_import.TracksImport.get_imports_per_date(start, end, end_id=limit)
 
 @dbimports_api.route('/num/per_date')
 class DBImports4DateNum(Resource):
@@ -68,11 +68,11 @@ class DBImports4DateNum(Resource):
     def get(self):
         """ Imports number per date range """
         start, end = validate_date_range()
-        return dbimport_db.DBImport.get_imports_per_date_num(start, end)
+        return tracks_import.TracksImport.get_imports_per_date_num(start, end)
 
 @dbimports_api.route('/per_radios/num/')
 class RTsReviewedNum(Resource):
     @dbimports_api.marshal_with(di_num_per_radios)
     def get(self):
         """ Number of reviewed Tracks of Radios """
-        return {'result': dbimport_db.DBImport.get_imports_num_per_radios()}
+        return {'result': tracks_import.TracksImport.get_imports_num_per_radios()}

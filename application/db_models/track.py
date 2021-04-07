@@ -1,6 +1,6 @@
 from application.db_models.extenders_for_db_models import BaseExtended
-from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime, Boolean, and_
-from application.db_models import radio_db
+from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime, Boolean, JSON, and_
+from application.db_models import radio
 from sqlalchemy import or_
 from datetime import datetime
 
@@ -14,25 +14,36 @@ class Track(BaseExtended):
     artist = Column(String, nullable=False)
     album_name = Column(String)
     album_year = Column(String)
-    duration = Column(String)
+    rank = Column(Integer)      # get from deezer / lastfm
+    duration = Column(String)   # get from deezer / spotify / lastfm
     play_date = Column(DateTime)
     radio_name = Column(String, ForeignKey('radios.name'), nullable=False)
-    db_import_date = Column(DateTime, ForeignKey('dbImports.import_date'))
-    spotify_export_date = Column(Integer, ForeignKey('spotifyExports.export_date'))
-    download_link = Column(String)
-    failed_to_downloaded = Column(String)
+    import_date = Column(DateTime, ForeignKey('tracksImports.import_date'))
+    # spotify_export_date = Column(Integer, ForeignKey('spotifyExports.export_date'))
+    # download_link = Column(String)
+    # failed_to_downloaded = Column(String)
     # failed_to_downloaded = Column(Boolean, default=False)
-    reviewed = Column(String)
-    in_spotify = Column(String)
-    failed_to_spotify = Column(String)
+    # reviewed = Column(String)
+    # in_spotify = Column(String)
+    # failed_to_spotify = Column(String)
     genre = Column(String(20))
-    youtube_link = Column(String)
     created_on = Column(DateTime(), default=datetime.now)
-    liked = Column(Boolean, default=False)
+    services = Column(JSON)
+    """
+    {'spotify': {
+                    'success': True, 
+                    'track': {  
+                                'title': '',
+                                'uri': ''
+                              }
+                }
+    }
+    """
+
 
     def __repr__(self):
        return f"<Track(name: {self.common_name} [{self.play_date}], radio: {self.radio_name}, " \
-              f"import time: {self.db_import_date})>"
+              f"import time: {self.import_date})>"
 
     @classmethod
     def query_tracks(cls, start_date='', end_date='', start='', end='', q_filter=''):
@@ -83,7 +94,7 @@ class Track(BaseExtended):
 
     @classmethod
     def get_tracks_per_radios_num(cls):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         return cls.query_objects_num_all_sorted(between_argument='db_import_date',
                                                 sort_argument='radio_name',
                                                 init_dict=init_dict)
@@ -96,7 +107,7 @@ class Track(BaseExtended):
 
     @classmethod
     def get_tracks_per_date_per_radios_num(cls, start_date, end_date):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
                                                 sort_argument='radio_name', init_dict=init_dict)
 
@@ -129,14 +140,14 @@ class Track(BaseExtended):
 ### Reviewed tracks per data ###
     @classmethod
     def get_tracks_per_date_reviewed_num_per_radios(cls, start_date, end_date):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         q_filter = cls.reviewed == True
         return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
                                                 sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
 
     @classmethod
     def get_tracks_reviewed_num_per_radios(cls):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         q_filter = cls.reviewed == True
         return cls.query_objects_num_all_sorted(sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
 
@@ -168,14 +179,14 @@ class Track(BaseExtended):
 ### NOT Reviewed tracks per data ###
     @classmethod
     def get_tracks_per_date_reviewed_not_num_per_radios(cls, start_date, end_date):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         q_filter = (cls.reviewed == None) | (cls.reviewed == False)
         return cls.query_objects_num_all_sorted(start_date, end_date, between_argument='db_import_date',
                                                  sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
 
     @classmethod
     def get_tracks_reviewed_not_num_per_radios(cls):
-        init_dict = {radio.name: 0 for radio in radio_db.Radio.all()}
+        init_dict = {radio.name: 0 for radio in radio.Radio.all()}
         q_filter = (cls.reviewed == None) | (cls.reviewed == False)
         return cls.query_objects_num_all_sorted(sort_argument='radio_name', init_dict=init_dict, q_filter=q_filter)
 

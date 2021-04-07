@@ -1,4 +1,4 @@
-from application.db_models import dbimport_db
+from application.db_models import tracks_import
 from flask_restx import Namespace, Resource
 from flask import request
 from application.schema_models.dbimports_schemas import di_num, di_brief
@@ -16,7 +16,7 @@ class RI(Resource):
         """ List of Imports of Radio """
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
-        return dbimport_db.DBImport.get_imports_per_radio(radio_name, end_id=limit)
+        return tracks_import.TracksImport.get_imports_per_radio(radio_name, end_id=limit)
 
 @radio_imports_api.route('/latest')
 class RI(Resource):
@@ -26,7 +26,7 @@ class RI(Resource):
     def get(self):
         """ Latest Import of Radio """
         radio_name = request.args.get('radio_name')
-        return dbimport_db.DBImport.get_latest_import_for_radio(radio_name)
+        return tracks_import.TracksImport.get_latest_import_for_radio(radio_name)
 
 
 ######### Number of tracks per radio #############
@@ -38,7 +38,7 @@ class RINum(Resource):
     def get(self):
         """ Number of Imports of Radio """
         radio_name = request.args.get('radio_name')
-        return dbimport_db.DBImport.get_imports_num_per_radio(radio_name)
+        return tracks_import.TracksImport.get_imports_num_per_radio(radio_name)
 
 
 ############## Radio Imports per date ###############
@@ -52,7 +52,7 @@ class RI4Date(Resource):
         limit = request.args.get('limit')
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return dbimport_db.DBImport.get_imports_per_date_per_radio(start, end, radio_name, end_id=limit)
+        return tracks_import.TracksImport.get_imports_per_date_per_radio(start, end, radio_name, end_id=limit)
 
 
 ############## Radio Imports Number per date ###############
@@ -65,5 +65,5 @@ class RI4DateNum(Resource):
         """ Number of Imports of Radio per date range"""
         radio_name = request.args.get('radio_name')
         start, end = validate_date_range()
-        return dbimport_db.DBImport.get_imports_per_date_per_radio_num(start, end, radio_name)
+        return tracks_import.TracksImport.get_imports_per_date_per_radio_num(start, end, radio_name)
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session
-from application.db_models.radio_db import Radio
+from application.db_models.radio import Radio
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
 

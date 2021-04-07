@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session
-from application.db_models.dbimport_db import DBImport
+from application.db_models.tracks_import import TracksImport
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
 
@@ -15,5 +15,5 @@ imports = Blueprint('imports', __name__, template_folder='templates', static_fol
 
 @imports.route('/')
 def imports_list():
-    imports = DBImport.get_imports(end_id=15)
+    imports = TracksImport.get_imports(end_id=15)
     return render_template('imports.html', imports=imports)

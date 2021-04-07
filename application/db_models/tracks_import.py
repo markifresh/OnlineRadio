@@ -1,28 +1,35 @@
-from application.db_models.extenders_for_db_models import BaseExtended
 from sqlalchemy import Column, Integer, String, Float, Sequence, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from datetime import datetime, timedelta
 from sqlalchemy.orm import lazyload
-from application.db_models import track_db
+from datetime import datetime, timedelta
+
 from application.workers.ExtraFunc import get_date_range_list
+from application.db_models.extenders_for_db_models import BaseExtended
+from application.db_models import track
+from application.db_models import user
 
 
-class DBImport(BaseExtended):
+class TracksImport(BaseExtended):
     unique_search_field = 'import_date'
 
-    __tablename__ = 'dbImports'
+    __tablename__ = 'tracksImports'
     id = Column(Integer, primary_key=True)
-    import_date = Column(DateTime, Sequence('dbimport_import_date_seq'), unique=True)  # update time in ms
-    tracks = relationship('track_db.Track', lazy='dynamic')
+    import_date = Column(DateTime, Sequence('tracksImport_import_date_seq'), unique=True)  # update time in ms
+    tracks = relationship('track.Track', lazy='dynamic')
     num_tracks_added = Column(Integer, default=0)
     num_tracks_requested = Column(Integer, default=0)
     radio_name = Column(String(20), ForeignKey('radios.name'), nullable=False)
     import_duration = Column(Float, default=0)
     for_date = Column(DateTime)  # update_time in ms
+    type = Column(String)  # full_day / specific_time
+    requester = Column(String(20), ForeignKey('users.account_uri'), nullable=False)
+    # ? service_name = Column(String)
 
     def __repr__(self):
         return f"<dbImport({self.import_date}, {self.radio_name}, " \
                f"{self.num_tracks_added} vs {self.num_tracks_requested})>"
+
+    # todo: method to get tracks per import
 
     @classmethod
     def query_imports(cls, start_date='', end_date='', start='', end='', q_filter=''):
@@ -85,7 +92,7 @@ class DBImport(BaseExtended):
 
     @classmethod
     def get_imports_num_per_radios(cls):
-        from application.db_models.radio_db import Radio
+        from application.db_models.radio import Radio
         init_dict = {radio.name: 0 for radio in Radio.all()}
         return cls.query_objects_num_all_sorted(sort_argument='radio_name',
                                                 init_dict=init_dict)

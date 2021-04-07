@@ -1,27 +1,33 @@
 from application.db_models.extenders_for_db_models import BaseExtended
 from sqlalchemy import Column, Integer, String, Sequence, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from application.db_models import track_db
+from application.db_models import track
 from datetime import datetime
 
 
-class SpotifyExport(BaseExtended):
+class TracksExport(BaseExtended):
     unique_search_field = 'export_date'
 
-    __tablename__ = 'spotifyExports'
+    __tablename__ = 'tracksExports'
     id = Column(Integer, primary_key=True)
-    export_date = Column(DateTime, Sequence('spotifyexports_export_date_seq'), unique=True)  # update_time in ms
-    tracks = relationship('track_db.Track', lazy='dynamic')
+    export_date = Column(DateTime, Sequence('tracksExport_export_date_seq'), unique=True)  # update_time in ms
+    requester = Column(String(20), ForeignKey('users.account_uri'), nullable=False)
+    tracks = Column(String)
     radio_name = Column(String(20), ForeignKey('radios.name'), nullable=False)
     num_tracks_added = Column(Integer, default=0)
     num_tracks_requested = Column(Integer, default=0)
-    num_tracks_reviewed = Column(Integer, default=0)
-
+    # num_tracks_reviewed = Column(Integer, default=0)
+    service_name = Column(String)
+    playlist_id = Column(Integer)
     # tracks_reviewed = tracs_ref
 
     def __repr__(self):
-        return f"<spotifyExport({self.export_date}, {self.radio_name}, " \
+        return f"<Export({self.export_date}, {self.radio_name}, " \
                f"{self.num_tracks_requested} vs {self.num_tracks_added})>"
+
+
+    # todo: method/hybryd for parsing tracks (method to get tracks per export)
+    # todo: method to find all tracks from string
 
 
     @classmethod

@@ -24,7 +24,7 @@ def create_app(confConfClass):
               version='1.0',
               title='OnlineRadio API',
               description='API for online Radio',
-              # doc='/api/docs/'
+              doc='/api/docs/'
               )
     #
     # app.config.SWAGGER_UI_DOC_EXPANSION = 'list'
@@ -52,12 +52,14 @@ def create_app(confConfClass):
         # app.register_blueprint(tracks_api)
 
         
-        
-        from application.pages.auth.auth_page import auth_page
-        app.register_blueprint(auth_page, url_prefix='/')
-
         from .pages.welcome import welcome_page
         app.register_blueprint(welcome_page.welcome, url_prefix='/welcome')
+
+        from .pages.user_settings import user_settings_page
+        app.register_blueprint(user_settings_page.user_settings, url_prefix='/settings')
+
+        from application.pages.auth.auth_page import auth_page
+        app.register_blueprint(auth_page, url_prefix='/')
         
         from .pages.radios import radios_page
         app.register_blueprint(radios_page.radios, url_prefix='/radios')

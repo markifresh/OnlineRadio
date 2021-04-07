@@ -73,6 +73,9 @@ class BaseExtended(Base):
             except:
                 result = {'success': False, 'result': traceback_format_exc()}
 
+        elif obj.count() == 0:
+            return cls.commit_data(data)
+
         else:
             result = {'success': False, 'result': f'Instead of 1 - {obj.count()} object was found'}
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session
-from application.db_models.spotifyexport_db import SpotifyExport
+from application.db_models.tracks_export import TracksExport
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
 
@@ -15,5 +15,5 @@ exports = Blueprint('exports', __name__, template_folder='templates', static_fol
 
 @exports.route('/')
 def exports_list():
-    exports = SpotifyExport.get_exports(end_id=15)
+    exports = TracksExport.get_exports(end_id=15)
     return render_template('exports.html', exports=exports)

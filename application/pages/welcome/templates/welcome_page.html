@@ -1,28 +1,28 @@
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>My Video</title>
-  </head>
-  <body>
-<figure>
-    <button class="btn">asdad</button>
-    <audio id="audio"
-           src="https://icecast.radiofrance.fr/fiprock-midfi.mp3?id=radiofrance">
-    </audio>
-</figure>
-  <figure>
-    <figcaption>Listen to the T-Rex:</figcaption>
-    <audio id="audio2"
-           controls
+{% include 'parts/header_open.html' %}
+{% include 'parts/header_close.html' %}
+<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
 
-        src='https://ledjamradio.ice.infomaniak.ch/ledjamradio.mp3'>
-            Your browser does not support the
-            <code>audio</code> element.
-    </audio
-        >
-</figure>
+<div class="container">
 
 
+    <div class="alert alert-info" role="alert">
+        <strong>Choose your service ...</strong>
+    </div>
+
+    <div class="list-group">
+        <button type="button" class="list-group-item list-group-item-action"
+                onclick='location.replace("{{url_for("oauth.spotify_redirect")}}")'>
+            Spotify
+        </button>
+        <button type="button" class="list-group-item list-group-item-action"
+                onclick='location.replace("{{url_for("oauth.deezer_redirect")}}")'>
+            Deezer
+        </button>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
   </body>
 </html>
 
