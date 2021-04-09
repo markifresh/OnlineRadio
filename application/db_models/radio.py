@@ -551,6 +551,19 @@ class  Radio(BaseExtended):
         return radio_dic[name]
 
     @classmethod
+    def get_radios_by_name(cls, names):
+        final_res = []
+        radios = cls.query(cls).filter(cls.name.in_(names)).all()
+
+        for radio in radios:
+            radio_dic = cls.to_json(radio)
+            radio_dic[radio.name]['num_tracks'] = track.Track.get_tracks_per_radio_num(radio.name)
+            radio_dic[radio.name]['latest_dbimport'] = getattr(tracks_import.TracksImport.get_latest_import_for_radio(radio.name), 'import_date', '-')
+            final_res.append(radio_dic[radio.name])
+
+        return final_res
+
+    @classmethod
     def get_all_radios(cls):
         return cls.to_json(cls.all())
 

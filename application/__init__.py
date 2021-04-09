@@ -140,5 +140,9 @@ def create_app(confConfClass):
         #           version="1.0",
         #           title="Name Recorder",
         #           description="Manage names of various users of the application")
-
         return app
+
+def create_dbs():
+    from application.db_models.radio import Radio
+    Radio.create_tables()
+    Radio.update_radios_list

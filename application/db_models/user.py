@@ -6,6 +6,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from application.db_models import tracks_import
 from application.db_models import tracks_export
+from application.db_models import radio
+from application.db_models import track
 
 class User(UserMixin, BaseExtended):
     unique_search_field = 'account_uri'
@@ -34,6 +36,82 @@ class User(UserMixin, BaseExtended):
     # todo: method to get user by json (classmethod)
     # todo: method to add tracks
     # todo: method to add/set radios
+
+    @classmethod
+    def get_all_users(cls):
+        res = cls.query(cls.account_id,
+                        cls.created_on,
+                        cls.display_name,
+                        cls.service_name
+                        ).all()
+        cls.session.close()
+        return res
+
+    @classmethod
+    def get_user(cls, account_id):
+    # account_id in format "<ms_service>:<account_id>"
+        result = None
+        res = cls.query(cls).filter(cls.account_id == account_id)
+
+            # cls.account_id,
+            # cls.account_uri,
+            # cls.created_on,
+            # cls.display_name,
+            # cls.last_login,
+            # cls.service_name,
+            # cls.settings
+
+        if res.count() == 1:
+            result = res.first()
+
+        cls.session.close()
+        return result
+
+    @classmethod
+    def get_user_radios(cls, account_id):
+        user = cls.get_user(account_id)
+        radios_list = user.radios[:-1].split(',')
+        #return radio.Radio.get_radios_by_name(radios_list)
+        return radio.Radio.query(radio.Radio).filter(radio.Radio.name.in_(radios_list)).all()
+
+    def get_radios(self):
+        return self.get_user_radios(self.account_id)
+
+    @classmethod
+    def get_user_tracks(cls, account_id):
+        user = cls.get_user(account_id)
+        tracks_list = user.tracks[:-1].split(',')
+        track_db = track.Track
+        return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+
+    def get_tracks(self):
+        return self.get_user_tracks(self.account_id)
+
+    @classmethod
+    def get_user_liked_tracks(cls, account_id):
+        user = cls.get_user(account_id)
+        tracks_list = user.liked_tracks[:-1].split(',')
+        track_db = track.Track
+        return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+
+    def get_liked_tracks(self):
+        return self.get_user_liked_tracks(self.account_id)
+
+    @classmethod
+    def get_user_imports(cls, account_id):
+        user = cls.get_user(account_id)
+        return user.imports.all()
+
+    def get_imports(self):
+        return self.get_user_imports(self.account_id)
+
+    @classmethod
+    def get_user_exports(cls, account_id):
+        user = cls.get_user(account_id)
+        return user.exports.all()
+
+    def get_exports(self):
+        return self.get_user_exports(self.account_id)
 
     # @classmethod
     # def get_user_id(cls, session_dict):
