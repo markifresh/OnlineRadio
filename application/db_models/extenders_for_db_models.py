@@ -39,7 +39,7 @@ class BaseExtended(Base):
             return {}
 
 
-        res = {}
+        res = []
         col_names = db_objects[0].__table__.columns.keys()
         # prime_key = cls.__table__.primary_key.columns.values()[0].name
 
@@ -47,7 +47,7 @@ class BaseExtended(Base):
             obj = {}
             for col_name in col_names:
                 obj[col_name] = getattr(db_object, col_name)
-            res[getattr(db_object, prime_key)] = obj
+            res.append(obj)
 
         return res
 
@@ -71,13 +71,14 @@ class BaseExtended(Base):
                 cls.session.commit()
                 result = {'success': True, 'result': ''}
             except:
+                cls.session.rollback()
                 result = {'success': False, 'result': traceback_format_exc()}
 
-        elif obj.count() == 0:
-            return cls.commit_data(data)
+        # elif obj.count() == 0:
+        #     return cls.commit_data(data)
 
         else:
-            result = {'success': False, 'result': f'Instead of 1 - {obj.count()} object was found'}
+            result = {'success': False, 'result': f'Instead of 1 object - {obj.count()} object was found'}
 
         # cls.session.close()
         return result

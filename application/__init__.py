@@ -88,6 +88,9 @@ def create_app(confConfClass):
         #     'title': fields.String(required=True, description='artist of a track'),
         # })
 
+        from application.schema_models.users_schemas import users_schemas
+        api.add_namespace(users_schemas)
+
         from application.schema_models.tracks_schemas import tracks_schemas
         api.add_namespace(tracks_schemas)
 
@@ -103,6 +106,8 @@ def create_app(confConfClass):
         from application.schema_models.tracks_schemas import tracks_schemas
         api.add_namespace(tracks_schemas)
 
+        from application.apis.users_api import users_api
+        api.add_namespace(users_api, '/api/users')
 
         from application.apis.radios_api import radios_api
         api.add_namespace(radios_api, '/api/radios')

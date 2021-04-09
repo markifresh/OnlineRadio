@@ -61,6 +61,7 @@ class APIConfig:
     spotify_api_id = getenv('SPOTIFY_API_ID')
     spotify_api_key = getenv('SPOTIFY_API_KEY')
     youtube_api_key = getenv('YOUTUBE_API_KEY')
+    api_envelope = 'result'
 
 
 class RadioConfig:

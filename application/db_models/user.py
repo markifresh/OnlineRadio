@@ -10,7 +10,7 @@ from application.db_models import radio
 from application.db_models import track
 
 class User(UserMixin, BaseExtended):
-    unique_search_field = 'account_uri'
+    unique_search_field = 'account_id'
 
     __tablename__ = 'users'
 
@@ -38,14 +38,15 @@ class User(UserMixin, BaseExtended):
     # todo: method to add/set radios
 
     @classmethod
-    def get_all_users(cls):
-        res = cls.query(cls.account_id,
-                        cls.created_on,
-                        cls.display_name,
-                        cls.service_name
-                        ).all()
-        cls.session.close()
-        return res
+    def get_all_users(cls, start_id=0, end_id=50):
+        return cls.query(cls).filter(cls.id.between(start_id, end_id)).all()
+        # cls.session.close()
+        # return [{'account_id': user[0],
+        #          'created_on': user[1],
+        #          'display_name': user[2],
+        #          'service_name': user[3],
+        #          } for user in users]
+
 
     @classmethod
     def get_user(cls, account_id):
@@ -66,6 +67,13 @@ class User(UserMixin, BaseExtended):
 
         cls.session.close()
         return result
+
+    @classmethod
+    def user_update(cls, update_dict):
+        res = cls.update_row(update_dict)
+        if res['success']:
+            res = cls.get_user(update_dict['account_id'])
+        return res
 
     @classmethod
     def get_user_radios(cls, account_id):
