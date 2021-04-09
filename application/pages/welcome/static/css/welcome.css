@@ -1,0 +1,35 @@
+body{
+background-image: url('../BG.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.container{
+margin: 0 auto;}
+
+#loginTitle{
+margin-bottom: 1px;
+background-color: rgba(104, 66, 212, 0.51);
+color: gainsboro;
+
+}
+
+.list-group button{
+background-color: #343a40ba;
+color: darkgray;
+}
+
+.list-group {
+  min-width: 500px;
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem
+}
+@media (max-width: 500px) {
+  .list-group {
+    min-width: 90%;
+  }
+}

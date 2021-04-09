@@ -1,15 +1,23 @@
 {% include 'parts/header_open.html' %}
 {% include 'parts/header_close.html' %}
-<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/welcome.css') }}">
 
-<div class="container">
+<div class="d-flex justify-content-center">
 
+<!--  <div class="row justify-content-end">-->
+<!--    <div class="col-9">-->
+<!--    </div>-->
+<!--    <div class="col-3">-->
+<!--    <div id="loginTitle" class="alert alert-info" role="alert">-->
+<!--        <strong>Choose your service ...</strong>-->
+<!--    </div>-->
 
-    <div class="alert alert-info" role="alert">
-        <strong>Choose your service ...</strong>
-    </div>
+    <div class="list-group d-inline-flex p-2 ">
+        <button id="loginTitle" type="button" class="list-group-item list-group-item-action" disabled
+                onclick='location.replace("{{url_for("oauth.spotify_redirect")}}")'>
+            Choose Music Service
+        </button>
 
-    <div class="list-group">
         <button type="button" class="list-group-item list-group-item-action"
                 onclick='location.replace("{{url_for("oauth.spotify_redirect")}}")'>
             Spotify
@@ -20,9 +28,10 @@
         </button>
     </div>
 </div>
+<!--</div>-->
+<!--</div>-->
 
-
-<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>
 
