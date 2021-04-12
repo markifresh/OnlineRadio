@@ -13,6 +13,9 @@ class Djam(RadioAbstract):
     tracks_request_url = 'https://www.djamradio.com/actions/retrieve.php'
     stream_url = 'https://ledjamradio.ice.infomaniak.ch/ledjamradio.mp3'
     current_playing_url = 'https://www.djamradio.com/actions/infos.php'
+    genre = 'jazz,soul,hiphop,pop'
+    description = 'France radio'
+    country = 'France'
 
     def __init__(self, radio_id=radio_id):
         super().__init__(radio_id)

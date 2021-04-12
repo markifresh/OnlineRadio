@@ -9,6 +9,9 @@ class RadioAbstract(ABC):
     tracks_request_url = ''
     stream_url = ''
     current_playing_url = ''
+    genre = 'not set'
+    description = 'default radio description'
+    country = 'Country not set'
 
     @abstractmethod
     def __init__(self, radio_id):
@@ -44,4 +47,7 @@ class RadioAbstract(ABC):
         return {'success': True, 'result': {cls.radio_id: {
                                                             'name': cls.radio_id,
                                                             'url': cls.url,
-                                                            'stream_url': cls.stream_url}}}
+                                                            'stream_url': cls.stream_url,
+                                                            'genre': cls.genre,
+                                                            'description': cls.description,
+                                                            'country': cls.country}}}

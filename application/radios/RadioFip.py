@@ -13,6 +13,9 @@ class Fip(RadioAbstract):
     url = 'https://www.fip.fr/'
     tracks_request_url = 'https://openapi.radiofrance.fr/v1/graphql'
     stream_url = ''
+    description = 'France radio'
+    country = 'France'
+    genre = 'pop,soul,jazz,rock'
 
     def __init__(self, radio_id):
         super().__init__(radio_id)
@@ -21,7 +24,7 @@ class Fip(RadioAbstract):
     def get_stations(cls):
         json = {'query': '{ brand'
         f'(id: {cls.parent_id}) '
-                         '{ id liveStream webRadios { id liveStream} } } '}
+                         '{ id  liveStream webRadios { id liveStream description} } } '}
         headers = {'x-token': APIConfig.radiofrance_api_key}
         res = req_post(url=cls.tracks_request_url, json=json, headers=headers)
 
@@ -32,12 +35,18 @@ class Fip(RadioAbstract):
         radios = radio['webRadios']
         fip_radio = {'name': radio['id'],
                      'url': radio_url,
-                     'stream_url': radio['liveStream']}
+                     'stream_url': radio['liveStream'],
+                     'description': cls.description,
+                     'genre': cls.genre,
+                     'country': cls.country}
         fip_stations = {}
         for radio in radios:
             fip_stations[radio['id']] = {'name': radio['id'],
                                          'url': radio_url,
-                                         'stream_url': radio['liveStream']}
+                                         'stream_url': radio['liveStream'],
+                                         'genre': radio['id'].split('_')[-1],
+                                         'description': radio['description'],
+                                         'country': cls.country}
         fip_stations[fip_radio['name']] = fip_radio
 
         for excluded_station in cls.exclude_radios:

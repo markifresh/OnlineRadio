@@ -406,6 +406,9 @@ class  Radio(BaseExtended):
     tracks = relationship('track.Track', lazy='dynamic')
     created_on = Column(DateTime(), default=datetime.now)
     currently_playing = Column(JSON)    # make hybrid, based on scheduled background function/variable ?
+    description = Column(String)
+    genre = Column(String)
+    country = Column(String)
 
     def __repr__(self):
         return f"<Radio({self.name})>"
