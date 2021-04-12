@@ -1,6 +1,6 @@
-.mainNav button{
-border: 0px solid transparent;
-outline: none !important;
+.mainNav .navbar-toggler{
+border: 0px solid transparent !important;
+outline: 0 !important;
 }
 
 .mainNav .btn {
@@ -23,6 +23,7 @@ body {
 }
 
 .card {
+  min-width: 280px;
   width: 30%;
   float: left;
   margin: 1%;
@@ -51,7 +52,7 @@ border-radius: 1.25rem}
 
 audio{
     bottom: 0;
-    right: 0;
+    left: 0;
     position: fixed;
     background-color: white;
     outline: none ;
