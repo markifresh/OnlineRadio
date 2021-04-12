@@ -1,22 +1,140 @@
 {% include 'parts/header_open.html' %}
 {% include 'parts/header_close.html' %}
-<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
+{% include 'parts/navbar_menu_open.html' %}
+{% include 'parts/login_as.html' %}
+{% include 'parts/navbar_menu_close.html' %}
+{% include 'parts/navbar_search_open.html' %}
+{% include 'parts/navbar_search_close.html' %}
+{% include 'parts/navbar_close.html' %}
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/begin_scripts.js') }}"></script>
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/settings.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
 
-<div class="container">
+<div>
     {% if not session['configured'] %}
-        <h3> Looks like you don't have radios yet... Lets fix it!</h3>
+        <a id="pageHeader" href="/radios" type="button" class="btn btn-secondary disabled mb-1 text-start" style="width:100%">
+            Please select few radios to begin
     {% else %}
-        <h3> Here is your radios</h3>
+        <a id="pageHeader" href="/radios" type="button" class="btn btn-success mb-1 text-start" style="width:100%; display:none">
+            Click me when you are done!
     {% endif %}
-    <div class="list-group">
-        <button type="button" class="list-group-item list-group-item-action">Radio 1</button>
-        <button type="button" class="list-group-item list-group-item-action">Radio 2</button>
-        <button type="button" class="list-group-item list-group-item-action">Radio 3</button>
-    </div>
+        </a>
 </div>
 
-<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
+<div id="carouselExampleControls" class="carousel slide" data-ride="false" data-pause="true">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+<div class="container" style="margin-bottom: 80px">
+
+
+  {% for radio in radios %}
+
+<div class="card bg-light text-center" id="card-{{ radio.name }}">
+  <div class="card-header">
+    <div class="row align-items-center">
+      <div class="col-2" style="text-align: start">
+        <h2 class="text-muted font-weight-bold" onclick="cardClick('card-{{ radio.name }}')">
+            <button class="btn selected py-0 mt-0" style="display:none">
+                &#x2713;
+            </button>
+            <button class="btn unselected py-0 mt-0">
+                ○
+            </button>
+        </h2>
+      </div>
+      <div class="col-8 align-items-center">
+        <h3 class="text-muted text-truncate font-weight-bold" >{{ radio.name | replace("_", " ")}}</h3>
+      </div>
+      <div class="col-2 pl-0 mb-1" style="padding-left: 0">
+        <img id="play-{{ radio.name }}" class="play-radio" src="static/play-out.png">
+        <img id="pause-{{ radio.name }}" class="pause-radio" src="static/pause-out.png" style="display: none">
+      </div>
+    </div>
+  </div>
+  <div class="card-body text-truncate">
+    <blockquote class="blockquote mb-0 ">
+      <footer class="blockquote-footer mt-1 text-truncate" >
+              <a class="text-muted " href="{{ radio.url }}" target="_blank">
+            {{ radio.url }}
+          </a>
+      </footer>
+    </blockquote>
+  </div>
+      <div class="card-footer">
+        <small class="text-muted text-truncate font-weight-bold">{{ radio.genre | replace (',',', ') | upper}}</small>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted font-weight-bold">{{ radio.country | capitalize}}</small>
+      </div>
+    </div>
+
+
+    {% endfor %}
+</div>
+    </div>
+    <div class="carousel-item">
+        <div class="container" style="margin-bottom: 80px">
+            <div class="list-group mt-3">
+                {% set options_list = [
+                        {'option_name': 'Daily Subscription',
+                        'description': 'Each day you will receive all tracks for previous day per radios'},
+
+                        {'option_name': 'Daily Export',
+                        'description': 'Each day all added tracks will be exported to your Music Service'},
+
+                        {'option_name': 'Auto Export',
+                        'description': 'Automatically add all tracks to your Music Service'},
+
+                        {'option_name': 'Auto Liked',
+                        'description': 'Automatically add liked tracks to your Music Service'},
+
+                ] %}
+
+                {% for option in options_list %}
+                <a type="button" class="btn btn-dark btn-lg shadow-none mb-3" onclick="optionClick(this)">
+                  <div class="row">
+                    <div class="col-1">
+                        <span class="option-disabled">○</span>
+                        <span class="option-enabled" style="display: none">&#x2713;</span>
+                    </div>
+                    <div class="col-2 optionName">
+                      {{ option['option_name'] }}
+                    </div>
+                    <div class="col-9">
+                      {{ option['description'] }}
+                    </div>
+                  </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <a id="carouselNext" class="carousel-control-next" href="#!" role="button" onclick="showNextSlide()">
+    <span id="carouselNextText" class="sr-only" style="font-size: 22px" >
+        Options >
+    </span>
+  </a>
+</div>
+
+
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+  <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong id="toastHeader" class="me-auto">Bootstrap</strong>
+      <small>just now</small>
+    </div>
+    <div id="toastBody" class="toast-body text-truncate">
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/settings.js') }}"></script>
   </body>
 </html>
 

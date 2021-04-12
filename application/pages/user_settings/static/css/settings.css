@@ -1,0 +1,47 @@
+body{
+background-image: url('../BG.jpg');
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+.bg-light{
+background-color: rgba(255, 255, 255, 0.63)!important;
+}
+
+.card-footer{
+padding-top: 3px;
+padding-bottom: 3px;
+}
+
+.text-muted{
+  color:rgb(46, 49, 51) !important;
+}
+
+.selectedCard{
+  background-color:rgb(184 165 239 / 80%)  !important;
+}
+
+
+div img{
+  width: 30px;
+}
+
+.selected, .unselected{
+font-size: 32px;
+}
+.toast{
+  background-color: #ffffff00 !important;
+}
+
+.toast-header, .toast-body{
+  background-color: rgb(33 37 41 / 76%) !important;
+  color: #bdb3a4d4 !important;
+}
+
+.carousel {
+  position: unset;}
+
+.list-group .btn{
+  background-color: rgb(33 37 41 / 76%) !important;
+  color: #bdb3a4d4 !important;
+}

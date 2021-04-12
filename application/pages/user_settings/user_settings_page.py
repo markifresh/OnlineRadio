@@ -10,4 +10,4 @@ def show_settings():
     # from config import APIConfig, config_class_to_dict
     # session['api_keys'] = config_class_to_dict(APIConfig)
     # print(session)
-    return render_template('user_settings_page.html')
+    return render_template('user_settings_page.html', radios=Radio.get_all_radios())

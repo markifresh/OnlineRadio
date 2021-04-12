@@ -150,4 +150,4 @@ def create_app(confConfClass):
 def create_dbs():
     from application.db_models.radio import Radio
     Radio.create_tables()
-    Radio.update_radios_list
+    # Radio.update_radios_list
