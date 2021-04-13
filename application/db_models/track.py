@@ -18,7 +18,7 @@ class Track(BaseExtended):
     duration = Column(String)   # get from deezer / spotify / lastfm
     play_date = Column(DateTime)
     radio_name = Column(String, ForeignKey('radios.name'), nullable=False)
-    import_date = Column(DateTime, ForeignKey('tracksImports.import_date'))
+    # import_date = Column(DateTime, ForeignKey('tracksImports.import_date'))
     # spotify_export_date = Column(Integer, ForeignKey('spotifyExports.export_date'))
     # download_link = Column(String)
     # failed_to_downloaded = Column(String)

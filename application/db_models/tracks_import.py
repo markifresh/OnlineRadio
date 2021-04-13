@@ -15,7 +15,7 @@ class TracksImport(BaseExtended):
     __tablename__ = 'tracksImports'
     id = Column(Integer, primary_key=True)
     import_date = Column(DateTime, Sequence('tracksImport_import_date_seq'), unique=True)  # update time in ms
-    tracks = relationship('track.Track', lazy='dynamic')
+    tracks = Column(String)
     num_tracks_added = Column(Integer, default=0)
     num_tracks_requested = Column(Integer, default=0)
     radio_name = Column(String(20), ForeignKey('radios.name'), nullable=False)

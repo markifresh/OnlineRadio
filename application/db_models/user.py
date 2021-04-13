@@ -23,11 +23,12 @@ class User(UserMixin, BaseExtended):
     last_login = Column(DateTime)
     settings = Column(JSON)     # export liked automatically to service
     radios = Column(String)
-    tracks = Column(String)
     liked_tracks = Column(String)
-    reviewed_tracks = Column(String)
     exports = relationship('tracks_export.TracksExport', lazy='dynamic')
     imports = relationship('tracks_import.TracksImport', lazy='dynamic')
+    # num_tracks = Column(Integer)
+    # num_tracks_exported = Column(Integer)
+
 
     # todo: method / hybrid attribute for liked tracks - returns a list?
     # todo: the same for radios
@@ -85,12 +86,23 @@ class User(UserMixin, BaseExtended):
     def get_radios(self):
         return self.get_user_radios(self.account_id)
 
+    # @classmethod
+    # def get_user_tracks(cls, account_id):
+    #     user = cls.get_user(account_id)
+    #     tracks_list = user.tracks[:-1].split(',')
+    #     track_db = track.Track
+    #     return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+
     @classmethod
     def get_user_tracks(cls, account_id):
-        user = cls.get_user(account_id)
-        tracks_list = user.tracks[:-1].split(',')
+        tracks = []
+        imports = cls.get_user_imports(account_id)
         track_db = track.Track
-        return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+        for one_import in imports:
+            one_import_tracks = one_import.tracks.split(',')
+            tracks.append(track_db.query(track_db).filter(track_db.id.in_(one_import_tracks)).all())
+        return tracks
+
 
     def get_tracks(self):
         return self.get_user_tracks(self.account_id)
@@ -120,6 +132,30 @@ class User(UserMixin, BaseExtended):
 
     def get_exports(self):
         return self.get_user_exports(self.account_id)
+
+    @classmethod
+    def get_user_exported_tracks(cls, account_id):
+        tracks = []
+        exports = cls.get_user_exports(account_id)
+        track_db = track.Track
+        for one_export in exports:
+            one_export_tracks = one_export.tracks.split(',')
+            tracks.append(track_db.query(track_db).filter(track_db.id.in_(one_export_tracks)).all())
+        return tracks
+
+    def get_exported_tracks(self):
+        return self.get_user_exported_tracks(self.account_id)
+
+
+    @classmethod
+    def get_user_not_exported_tracks(cls, account_id):
+        exported_tracks = cls.get_user_exported_tracks(account_id)
+        imported_tracks = cls.get_user_tracks(account_id)
+        return [track_obj for track_obj in imported_tracks if track_obj not in exported_tracks]
+
+    def get_not_exported_tracks(self):
+        return self.get_user_not_exported_tracks(self.account_id)
+
 
     # @classmethod
     # def get_user_id(cls, session_dict):
