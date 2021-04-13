@@ -6,6 +6,20 @@ from logging import INFO, DEBUG
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+user_settings = [
+                   {'option_name': 'daily_subscription',
+                   'description': 'Each day you will receive all tracks for previous day per radios'},
+
+                   {'option_name': 'daily_export',
+                   'description': 'Each day all added tracks will be exported to your Music Service'},
+
+                   {'option_name': 'auto_export',
+                   'description': 'Automatically add all tracks to your Music Service'},
+
+                   {'option_name': 'auto_liked',
+                   'description': 'Automatically add liked tracks to your Music Service'},
+                ]
+
 def config_class_to_dict(confClass):
      class_keys = [key for key in vars(confClass).keys() if '__' not in key]
      return {key: getattr(confClass, key) for key in class_keys}
@@ -117,4 +131,5 @@ class DeezerConfig(MusicService):
 
 class DBConfig:
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s'
+
 
