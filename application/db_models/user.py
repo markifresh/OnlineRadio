@@ -1,7 +1,7 @@
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from application.db_models.extenders_for_db_models import BaseExtended
-from sqlalchemy import Column, Integer, String, DateTime, JSON
+from sqlalchemy import Column, Integer, String, DateTime, JSON, desc
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from application.db_models import tracks_import
@@ -66,7 +66,6 @@ class User(UserMixin, BaseExtended):
         if res.count() == 1:
             result = res.first()
 
-        cls.session.close()
         return result
 
     @classmethod
@@ -79,12 +78,15 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user_radios(cls, account_id):
         user = cls.get_user(account_id)
+        if not user.radios:
+            return []
+
         radios_list = user.radios[:-1].split(',')
         #return radio.Radio.get_radios_by_name(radios_list)
         return radio.Radio.query(radio.Radio).filter(radio.Radio.name.in_(radios_list)).all()
 
-    def get_radios(self):
-        return self.get_user_radios(self.account_id)
+    # def get_radios(self):
+    #     return self.get_user_radios(self.account_id)
 
     # @classmethod
     # def get_user_tracks(cls, account_id):
@@ -104,8 +106,8 @@ class User(UserMixin, BaseExtended):
         return tracks
 
 
-    def get_tracks(self):
-        return self.get_user_tracks(self.account_id)
+    # def get_tracks(self):
+    #     return self.get_user_tracks(self.account_id)
 
     @classmethod
     def get_user_liked_tracks(cls, account_id):
@@ -114,24 +116,28 @@ class User(UserMixin, BaseExtended):
         track_db = track.Track
         return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
 
-    def get_liked_tracks(self):
-        return self.get_user_liked_tracks(self.account_id)
+    # def get_liked_tracks(self):
+    #     return self.get_user_liked_tracks(self.account_id)
 
     @classmethod
     def get_user_imports(cls, account_id):
         user = cls.get_user(account_id)
-        return user.imports.all()
+        res = user.imports.order_by(desc(tracks_import.TracksImport.id)).all()
+        user.session.close()
+        return res
 
-    def get_imports(self):
-        return self.get_user_imports(self.account_id)
+    # def get_imports(self):
+    #     return self.get_user_imports(self.account_id)
 
     @classmethod
     def get_user_exports(cls, account_id):
         user = cls.get_user(account_id)
-        return user.exports.all()
+        res = user.exports.order_by(desc(tracks_export.TracksExport.id)).all()
+        user.session.close()
+        return res
 
-    def get_exports(self):
-        return self.get_user_exports(self.account_id)
+    # def get_exports(self):
+    #     return self.get_user_exports(self.account_id)
 
     @classmethod
     def get_user_exported_tracks(cls, account_id):
@@ -143,8 +149,8 @@ class User(UserMixin, BaseExtended):
             tracks.append(track_db.query(track_db).filter(track_db.id.in_(one_export_tracks)).all())
         return tracks
 
-    def get_exported_tracks(self):
-        return self.get_user_exported_tracks(self.account_id)
+    # def get_exported_tracks(self):
+    #     return self.get_user_exported_tracks(self.account_id)
 
 
     @classmethod
@@ -153,8 +159,64 @@ class User(UserMixin, BaseExtended):
         imported_tracks = cls.get_user_tracks(account_id)
         return [track_obj for track_obj in imported_tracks if track_obj not in exported_tracks]
 
-    def get_not_exported_tracks(self):
-        return self.get_user_not_exported_tracks(self.account_id)
+    # def get_not_exported_tracks(self):
+    #     return self.get_user_not_exported_tracks(self.account_id)
+
+    @classmethod
+    def get_user_tracks_num_imported(cls, account_id):
+        tracks_imported = 0
+        imports = cls.get_user_imports(account_id)
+        for one_import in imports:
+            tracks_imported += one_import.num_tracks_added
+        return tracks_imported
+
+    # def get_tracks_num_imported(self):
+    #     return self.get_user_tracks_num_imported()
+
+    @classmethod
+    def get_user_tracks_num_exported(cls, account_id):
+        tracks_exported = 0
+        exports = cls.get_user_exports(account_id)
+        for one_export in exports:
+            tracks_exported += one_export.num_tracks_added
+        return tracks_exported
+
+    # def get_tracks_num_exported(self):
+    #     return self.get_user_tracks_num_imported()
+
+    @classmethod
+    def get_user_tracks_num_not_exported(cls, account_id):
+        return cls.get_user_tracks_num_imported(account_id) - cls.get_user_tracks_num_exported(account_id)
+
+    # def get_tracks_num_not_exported(self):
+    #     return self.get_user_tracks_num_not_exported(self.account_id)
+
+    @classmethod
+    def get_user_radio_page_data(cls, account_id):
+        radios = cls.to_json(cls.get_user_radios(account_id))
+        radios = {radio['name']: radio for radio in radios}
+        for radio in radios:
+            radios[radio]['num_imported'] = 0
+            radios[radio]['num_exported'] = 0
+
+        imports = cls.get_user_imports(account_id)
+        for record in imports:
+            if radios.get(record.radio_name):
+                radios[record.radio_name]['num_imported'] += record.num_tracks_added
+                if not radios[record.radio_name].get('latest_import'):
+                    radios[record.radio_name]['latest_import'] = record.import_date
+
+        exports = cls.get_user_exports(account_id)
+        for record in exports:
+            if radios.get(record.radio_name):
+                radios[record.radio_name]['num_exported'] += record.num_tracks_added
+                if not radios[record.radio_name].get('latest_export'):
+                    radios[record.radio_name]['latest_import'] = record.export_date
+
+        for radio in radios:
+            radios[radio]['num_to_export'] = radios[radio]['num_imported'] - radios[radio]['num_exported']
+
+        return radios
 
 
     # @classmethod

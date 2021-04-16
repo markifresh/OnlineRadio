@@ -22,6 +22,7 @@ user_full = users_schemas.model('user_full', {
     'display_name': fields.String(description='user display name', required=False),
     'last_login': fields.DateTime(description='user creation name', required=False),
     'service_name': fields.String(description='name of music service', required=False),
+    'radios': fields.String(description='name of music service', required=False),
     'settings': fields.Nested(user_settings, description='user settings', required=False),
     # 'settings': fields.Raw(description='user settings', required=False),
     # add radios as nested field (import schema from radio)

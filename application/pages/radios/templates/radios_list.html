@@ -14,15 +14,15 @@
 
   {% for radio in radios %}
 
-<div class="card bg-light text-center" id="card-{{ radio.name }}">
+<div class="card bg-light text-center" id="card-{{ radio }}">
   <div class="card-header">
     <div class="row">
       <div class="col-10" style="text-align: start">
-        <h3 class="text-muted">{{ radio.name | replace("_", " ")}}</h3>
+        <h3 class="text-muted">{{ radio | replace("_", " ")}}</h3>
       </div>
       <div class="col pr-0">
-        <img id="play-{{ radio.name }}" class="play-radio" src="static/play-out.png">
-        <img id="pause-{{ radio.name }}" class="pause-radio" src="static/pause-out.png" style="display: none">
+        <img id="play-{{ radio }}" class="play-radio" src="static/play-out.png">
+        <img id="pause-{{ radio }}" class="pause-radio" src="static/pause-out.png" style="display: none">
       </div>
     </div>
 
@@ -34,36 +34,36 @@
     <blockquote class="blockquote mb-0 ">
       <footer class="blockquote-footer">
         <cite title="Source Title">
-          <a class="text-muted " href="{{ radio.url }}" target="_blank">
-            {{ radio.url }}
+          <a class="text-muted " href="{{ radios[radio]['url'] }}" target="_blank">
+            {{ radios[radio]['url'] }}
           </a>
         </cite>
       </footer>
       <div>
           <div style="display: inline-block">
           <a type="button" class="btn btn-outline-secondary tracks" role="button"
-                  href="{{ '/tracks/' + radio.name }}">
+                  href="{{ '/tracks/' + radio }}">
             Tracks
           </a>
             </div>
 
           <a type="button" class="btn btn-outline-secondary imports" role="button"
-                  href="{{ '/imports/' + radio.name }}">
+                  href="{{ '/imports/' + radio}}">
             Imports
           </a>
 
 
           <a type="button" class="btn btn-outline-secondary exports" role="button"
-                  href="{{ '/exports/' + radio.name }}">
+                  href="{{ '/exports/' + radio }}">
             Exports
           </a>
 
       </div>
       <div>
-        <button type="button" id="import-{{ radio.name }}" class="btn btn-outline-info do-import">
+        <button type="button" id="import-{{ radio }}" class="btn btn-outline-info do-import">
           Make Import
         </button>
-        <button type="button"id="export-{{ radio.name }}"  class="btn btn-outline-info do-export">
+        <button type="button"id="export-{{ radio }}"  class="btn btn-outline-info do-export">
           Sync Spotify
         </button>
       </div>
@@ -75,7 +75,7 @@
         <small class="text-muted">Tracks in radio</small>
       </div>
       <div class="col">
-        <small class="text-muted tracks-num">{{ radio.num_tracks['number'] }}</small>
+        <small class="text-muted tracks-num">{{ radios[radio]['num_imported'] }}</small>
       </div>
     </div>
   </div>
@@ -85,7 +85,14 @@
         <small class="text-muted">Last import</small>
       </div>
       <div class="col">
-        <small class="text-muted import-date">{{ radio.latest_dbimport }}</small>
+        <small class="text-muted import-date">
+          {{ radios[radio]['latest_import'] }}
+        {% if radios[radio]['latest_import']  %}
+          {{ radios[radio]['latest_import']  }}
+        {% else %}
+          No Imports
+        {% endif %}
+        </small>
       </div>
     </div>
   </div>
@@ -95,7 +102,7 @@
         <small class="text-muted">Tracks to export</small>
       </div>
       <div class="col">
-        <small class="text-muted tracks-num-to-export">{{ radio.to_export_num_tracks['number'] }}</small>
+        <small class="text-muted tracks-num-to-export">{{ radios[radio]['num_to_export'] }}</small>
       </div>
     </div>
   </div>
@@ -105,7 +112,13 @@
         <small class="text-muted">Last export</small>
       </div>
       <div class="col">
-        <small class="text-muted export-date">{{ radio.latest_spotify_export }}</small>
+        <small class="text-muted export-date">
+          {% if radios[radio]['latest_export'] %}
+            {{ radios[radio]['latest_export'] }}
+          {% else %}
+            No Exports
+          {% endif %}
+        </small>
       </div>
     </div>
   </div>

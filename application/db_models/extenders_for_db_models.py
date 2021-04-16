@@ -1,4 +1,5 @@
 from . import set_session
+from sqlalchemy import desc
 from sqlalchemy.orm import query
 from sqlalchemy.ext.declarative import api
 from traceback import format_exc as traceback_format_exc
@@ -21,9 +22,16 @@ class BaseExtended(Base):
     query = session.query
 
     @classmethod
-    def all(cls):
-        res = cls.session.query(cls).all()
-        # cls.session.close()
+    def all(cls, sort_by='', reverse=False):
+        if sort_by and reverse:
+            res = cls.session.query(cls).order_by(desc(getattr(cls, sort_by))).all()
+
+        elif sort_by and not reverse:
+            res = cls.session.query(cls).order_by(getattr(cls, sort_by)).all()
+
+        else:
+            res = cls.session.query(cls).all()
+
         return res
 
     @classmethod

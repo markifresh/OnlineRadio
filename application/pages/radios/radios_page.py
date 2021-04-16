@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session
-from application.db_models.radio import Radio
+from application.db_models.user import User
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
 
@@ -15,5 +15,5 @@ radios = Blueprint('radios', __name__, template_folder='templates', static_folde
 
 @radios.route('/')
 def radios_list():
-    radios_data = Radio.get_data_for_radios_page()
+    radios_data = User.get_user_radio_page_data(session['ms_user']['id'])
     return render_template('radios_list.html', radios=radios_data)
