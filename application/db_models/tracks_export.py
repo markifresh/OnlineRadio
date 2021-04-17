@@ -65,8 +65,14 @@ class TracksExport(BaseExtended):
     def get_export_by_date(cls, export_date):
         if isinstance(export_date, str):
             export_date = datetime.strptime(export_date, '%Y-%m-%dT%H:%M:%S.%f')
-
         return cls.query(cls).filter(cls.export_date == export_date).one_or_none()
+
+    @classmethod
+    def get_export_tracks(cls, export_date):
+        one_export = cls.get_export_by_date(export_date)
+        track_db = track.Track
+        one_export_tracks = one_export.tracks.split(',')
+        return track_db.query(track_db).filter(track_db.id.in_(one_export_tracks)).all()
 
     @classmethod
     def get_exports_per_radio(cls, radio_name, start_id='', end_id=''):

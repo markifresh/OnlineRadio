@@ -49,6 +49,7 @@ class TracksImport(BaseExtended):
     def get_imports(cls, start_id='', end_id=''):
         return cls.query_imports(start=start_id, end=end_id)
 
+
     @classmethod
     def get_imports_num(cls):
         return cls.query_objects_num()
@@ -57,8 +58,14 @@ class TracksImport(BaseExtended):
     def get_import_by_date(cls, import_date):
         if isinstance(import_date, str):
             import_date = datetime.strptime(import_date, '%Y-%m-%dT%H:%M:%S.%f')
-
         return cls.query(cls).filter(cls.import_date == import_date).one_or_none()
+
+    @classmethod
+    def get_import_tracks(cls, import_date):
+        one_import = cls.get_import_by_date(import_date)
+        track_db = track.Track
+        one_import_tracks = one_import.tracks.split(',')
+        return track_db.query(track_db).filter(track_db.id.in_(one_import_tracks)).all()
 
     @classmethod
     def get_imports_per_date(cls, start_date, end_date, start_id='', end_id=''):

@@ -2,7 +2,7 @@ from application.db_models import tracks_export
 from flask_restx import Namespace, Resource, fields, reqparse
 from flask import request
 from application.schema_models.validators import validate_date_range, date_range_req, limit_req, radio_req
-from application.schema_models.spotifyexports_schemas import se_num, se_brief
+from application.schema_models.exports_schemas import se_num, se_brief
 
 
 radio_exports_api = Namespace('Radio Exports', description='Exports of Radio')

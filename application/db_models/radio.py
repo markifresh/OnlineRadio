@@ -1,6 +1,6 @@
 from application.db_models import tracks_import
 from application.db_models import tracks_export
-from application.db_models import track
+from application.db_models import track as track_db
 from application.workers.ExtraFunc import get_date_range_list
 from application.workers import RadioWorker
 
@@ -458,11 +458,11 @@ class  Radio(BaseExtended):
         return results
 
     @classmethod
-    def import_tracks_to_db(cls, radio_name, day, start_time, radio_tracks):
+    def import_tracks_to_db(cls, radio_name, day, start_time, radio_tracks, account_id=''):
         updated_tracks = []
         failed_tracks = []
         already_added_tracks = []
-        db_tracks = [track[0] for track in cls.session.query(track.Track.common_name).all()]
+        db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
         import_date = datetime.now()
         # import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
         if day:
@@ -497,10 +497,12 @@ class  Radio(BaseExtended):
         import_duration = round((end - start_time).total_seconds(), 2)
         num_tracks_added = len(updated_tracks)
         num_tracks_requested = len(radio_tracks)
-        res = tracks_import.TracksImport.update_row(data={'import_date': import_date,
-                                                    'num_tracks_added': num_tracks_added,
-                                                    'num_tracks_requested': num_tracks_requested,
-                                                    'import_duration': import_duration})
+        res = tracks_import.TracksImport.update_row(data={
+                                                            'import_date': import_date,
+                                                            'num_tracks_added': num_tracks_added,
+                                                            'num_tracks_requested': num_tracks_requested,
+                                                            'import_duration': import_duration,
+                                                            'requester': account_id})
 
         return {'success': res['success'],
                 'updated': updated_tracks,
@@ -513,17 +515,21 @@ class  Radio(BaseExtended):
                 'update_time_sec': import_duration,
                 'import_date': import_date.strftime('%d-%m-%Y %H:%M:%S'),
                 'for_date': str(day),
-                'res': res}
+                'res': res,
+                'requester': account_id}
 
     @classmethod
-    def update_radio_tracks(cls, radio_name, day=datetime.now()-timedelta(days=1)):
+    def update_radio_tracks(cls, radio_name, day="", account_id=""):
+        if not day:
+            day = datetime.now() - timedelta(days=1)
+
         start = datetime.now()
         radio_tracks = RadioWorker.create_radio(radio_name).get_radio_tracks(day)
 
         if not radio_tracks['success']:
             return radio_tracks
 
-        return cls.import_tracks_to_db(radio_name, day, start, radio_tracks['result'])
+        return cls.import_tracks_to_db(radio_name, day, start, radio_tracks['result'], account_id)
 
 
 
@@ -549,7 +555,7 @@ class  Radio(BaseExtended):
             return {}
 
         radio_dic = cls.to_json(radio)
-        radio_dic[name]['num_tracks'] = track.Track.get_tracks_per_radio_num(name)
+        radio_dic[name]['num_tracks'] = track_db.Track.get_tracks_per_radio_num(name)
         radio_dic[name]['latest_dbimport'] = getattr(tracks_import.TracksImport.get_latest_import_for_radio(name), 'import_date', '-')
         return radio_dic[name]
 
@@ -560,7 +566,7 @@ class  Radio(BaseExtended):
 
         for radio in radios:
             radio_dic = cls.to_json(radio)
-            radio_dic[radio.name]['num_tracks'] = track.Track.get_tracks_per_radio_num(radio.name)
+            radio_dic[radio.name]['num_tracks'] = track_db.Track.get_tracks_per_radio_num(radio.name)
             radio_dic[radio.name]['latest_dbimport'] = getattr(tracks_import.TracksImport.get_latest_import_for_radio(radio.name), 'import_date', '-')
             final_res.append(radio_dic[radio.name])
 
@@ -574,13 +580,13 @@ class  Radio(BaseExtended):
     def get_data_for_radios_page(cls):
         radios = cls.all()
         for radio in radios:
-            radio.num_tracks = track.Track.get_tracks_per_radio_num(radio.name)
+            radio.num_tracks = track_db.Track.get_tracks_per_radio_num(radio.name)
             db_import = tracks_import.TracksImport.get_latest_import_for_radio(radio.name)
             radio.latest_dbimport = db_import.import_date.strftime('%d-%m-%Y %H:%M:%S') if db_import else None
             spotify_export = tracks_export.TracksExport.get_latest_export_for_radio(radio.name)
             radio.latest_spotify_export = \
                 spotify_export.export_date.strftime('%d-%m-%Y %H:%M:%S') if spotify_export else None
-            radio.to_export_num_tracks = track.Track.get_tracks_exported_not_per_radio_num(radio_name=radio.name)
+            radio.to_export_num_tracks = track_db.Track.get_tracks_exported_not_per_radio_num(radio_name=radio.name)
         return radios
 
 
@@ -588,7 +594,7 @@ class  Radio(BaseExtended):
     def export_tracks(cls, radio_name, limit=100):
         num_tracks_added = 0
         export_date = datetime.now()
-        tracks = track.Track.get_tracks_exported_not_per_radio(radio_name, end_id=limit)
+        tracks = track_db.Track.get_tracks_exported_not_per_radio(radio_name, end_id=limit)
         # tracks = [f'{track["artist"]} - {track["title"]}' for track in tracks]
         cls.commit_data(tracks_export.TracksExport(export_date=export_date,
                                                    radio_name=radio_name,

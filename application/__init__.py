@@ -100,7 +100,7 @@ def create_app(confConfClass):
         from application.schema_models.radios_schemas import radios_schemas
         api.add_namespace(radios_schemas)
 
-        from application.schema_models.spotifyexports_schemas import se_schemas
+        from application.schema_models.exports_schemas import se_schemas
         api.add_namespace(se_schemas)
 
         from application.schema_models.tracks_schemas import tracks_schemas

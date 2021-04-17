@@ -1,3 +1,4 @@
+from flask import request
 from application.db_models import radio
 from application.db_models import tracks_export
 from flask_restx import Namespace, Resource, fields
@@ -15,7 +16,6 @@ class Radios(Resource):
         """ List of all Radios of DB """
         return radio.Radio.all()
 
-
 @radios_api.route('/<name>')
 @radios_api.response(404, 'Radio not found')
 @radios_api.param('name', 'Radio name')
@@ -25,6 +25,7 @@ class Radio(Resource):
     def get(self, name):
         """ Radio info by name """
         return radio.Radio.get_radio_by_name(name)
+
 
     # def delete(self, name):
     #     """ Delete radio by name """
@@ -45,20 +46,31 @@ class Radio(Resource):
 class RadiosUpdate(Resource):
 
     @radios_api.marshal_list_with(radios_schemas.radio_tracks_update)
-    def get(self):
+    def post(self):
         """ Update all radios tracks (adds all yesterdays tracks) """
         return radio.Radio.update_all_radios_tracks()
 
 
-@radios_api.route('/update/<name>')
+@radios_api.route('/<name>/import')
 @radios_api.response(404, 'Radio not found')
-@radios_api.param('name', 'Radio name')
 class RadioUpdate(Resource):
 
+    @radios_api.response(500, 'Invalid values')
+    @radios_api.param('name', 'Radio name')
+    @radios_api.expect(radios_schemas.radio_tracks_request, validate=True)
     @radios_api.marshal_with(radios_schemas.radio_tracks_update)
-    def get(self, name):
-        """ Update tracks for radio (adds all yesterdays tracks) """
-        return radio.Radio.update_radio_tracks(name)
+    def post(self, name):
+        """ Import tracks for radio (adds all yesterdays tracks) """
+        data = request.json
+        account_id = data.get('account_id', '')
+        date = data.get('date')
+        return radio.Radio.update_radio_tracks(radio_name=name, day=date, account_id=account_id)
+
+    # @radios_api.response(500, 'Invalid values')
+    # @radios_api.marshal_with(radios_schemas.radio_tracks_update)
+    # def post(self):
+    #     """ Modify user """
+    #     return user.User.user_update(request.json)
 
 
 @radios_api.route('/update/radios_list')
@@ -70,7 +82,7 @@ class RadiosListUpdate(Resource):
         return radio.Radio.update_radios_list()
 
 
-@radios_api.route('/export/<name>')
+@radios_api.route('/<name>/export')
 @radios_api.param('name', 'Radio name')
 class RadioExport(Resource):
 

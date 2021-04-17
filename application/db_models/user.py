@@ -18,7 +18,7 @@ class User(UserMixin, BaseExtended):
     created_on = Column(DateTime(), default=datetime.now)
     service_name = Column(String)
     display_name = Column(String)
-    account_id = Column(Integer)
+    account_id = Column(String)
     account_uri = Column(String, unique=True)
     last_login = Column(DateTime)
     settings = Column(JSON)     # export liked automatically to service
@@ -98,11 +98,10 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user_tracks(cls, account_id):
         tracks = []
+        imports_db = tracks_import.TracksImport
         imports = cls.get_user_imports(account_id)
-        track_db = track.Track
         for one_import in imports:
-            one_import_tracks = one_import.tracks.split(',')
-            tracks.append(track_db.query(track_db).filter(track_db.id.in_(one_import_tracks)).all())
+            tracks.append(imports_db.get_import_tracks(one_import.import_date))
         return tracks
 
 
@@ -142,11 +141,10 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user_exported_tracks(cls, account_id):
         tracks = []
+        export_db = tracks_export.TracksExport
         exports = cls.get_user_exports(account_id)
-        track_db = track.Track
         for one_export in exports:
-            one_export_tracks = one_export.tracks.split(',')
-            tracks.append(track_db.query(track_db).filter(track_db.id.in_(one_export_tracks)).all())
+            tracks.append(export_db.get_export_tracks(one_export.export_date))
         return tracks
 
     # def get_exported_tracks(self):
@@ -218,6 +216,44 @@ class User(UserMixin, BaseExtended):
 
         return radios
 
+    @classmethod
+    def get_user_imports_for_radio(cls, account_id, radio_name):
+        radio_imports = []
+        user_imports = cls.get_user_imports(account_id)
+        for user_import in user_imports:
+            if user_import.radio_name == radio_name:
+                radio_imports.append(user_import)
+        return radio_imports
+
+    @classmethod
+    def get_user_imported_tracks_for_radio(cls, account_id, radio_name):
+        tracks = []
+        imports_db = tracks_import.TracksImport
+        imports = cls.get_user_imports_for_radio(account_id, radio_name)
+        for one_import in imports:
+            tracks.append(imports_db.get_import_tracks(one_import.import_date))
+        return tracks
+
+    @classmethod
+    def get_user_exports_for_radio(cls, account_id, radio_name):
+        radio_exports = []
+        user_exports = cls.get_user_exports(account_id)
+        for user_export in user_exports:
+            if user_export.radio_name == radio_name:
+                radio_exports.append(user_export)
+        return radio_exports
+
+    @classmethod
+    def get_user_exported_tracks_for_radio(cls, account_id, radio_name):
+        tracks = []
+        exports_db = tracks_export.TracksExport
+        exports = cls.get_user_exports_for_radio(account_id, radio_name)
+        for one_export in exports:
+            tracks.append(exports_db.get_export_tracks(one_export.export_date))
+        return tracks
+
+    # @classmethod
+    # def get_user_import_
 
     # @classmethod
     # def get_user_id(cls, session_dict):

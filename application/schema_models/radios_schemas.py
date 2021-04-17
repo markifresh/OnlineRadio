@@ -17,7 +17,7 @@ radio_full = radios_schemas.model('radio_full', {
 
 radio_update = radios_schemas.model('radio_update', {
     'name': fields.String(required=True),
-    'url': fields.String(required=True),
+    'url': fields.String(required=True)
 })
 
 radios_list_update = radios_schemas.model('radios_list_update', {
@@ -42,4 +42,9 @@ radio_tracks_export = radios_schemas.model('radio_tracks_export', {
     'num_tracks_exported': fields.Integer,
     'num_tracks_added': fields.Integer,
     'export_date': fields.String
+})
+
+radio_tracks_request = radios_schemas.model('radio_tracks_request', {
+    'account_id': fields.String,
+    'date': fields.String,
 })

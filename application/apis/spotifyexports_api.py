@@ -1,7 +1,7 @@
 from application.db_models import tracks_export as se_db
 from flask_restx import Namespace, Resource
 from flask import request
-from application.schema_models.spotifyexports_schemas import se_brief, se_full, se_num
+from application.schema_models.exports_schemas import se_brief, se_full, se_num
 from application.schema_models.validators import validate_date_range, date_range_req, limit_req, from_id_req
 
 spotifyexports_api = Namespace('SpotifyExports', description='Exports of new tracks')

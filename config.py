@@ -6,6 +6,7 @@ from logging import INFO, DEBUG
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
+date_format = '%Y-%m-%dT%H:%M:%S.%f'
 user_settings = [
                    {'option_name': 'daily_subscription',
                    'description': 'Each day you will receive all tracks for previous day per radios'},
