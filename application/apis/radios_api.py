@@ -57,11 +57,11 @@ class RadioUpdate(Resource):
 
     @radios_api.response(500, 'Invalid values')
     @radios_api.param('name', 'Radio name')
-    @radios_api.expect(radios_schemas.radio_tracks_request, validate=True)
+    @radios_api.expect(radios_schemas.radio_tracks_request)
     @radios_api.marshal_with(radios_schemas.radio_tracks_update)
     def post(self, name):
         """ Import tracks for radio (adds all yesterdays tracks) """
-        data = request.json
+        data = request.json or {}
         account_id = data.get('account_id', '')
         date = data.get('date')
         return radio.Radio.update_radio_tracks(radio_name=name, day=date, account_id=account_id)

@@ -93,18 +93,20 @@ class BaseExtended(Base):
 
     @classmethod
     def commit_data(cls, data):
+        new_obj = None
 
         if isinstance(data, list) or isinstance(data, tuple):
             cls.session.add_all(data)
         else:
             if isinstance(data, dict):
-                cls.session.add(cls(**data))
+                new_obj = cls(**data)
             else:
-                cls.session.add(data)
+                new_obj = data
 
         try:
+            cls.session.add(new_obj)
             cls.session.commit()
-            result = {'success': True, 'result': data}
+            result = {'success': True, 'result': data, 'id': new_obj.id if new_obj else None}
         except:
             cls.session.rollback()
             result = {'success': False, 'result': traceback_format_exc()}

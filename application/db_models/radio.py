@@ -460,33 +460,39 @@ class  Radio(BaseExtended):
     @classmethod
     def import_tracks_to_db(cls, radio_name, day, start_time, radio_tracks, account_id=''):
         updated_tracks = []
+        added_ids = []
         failed_tracks = []
         already_added_tracks = []
         db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
         import_date = datetime.now()
         # import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
         if day:
-            cls.commit_data(tracks_import.TracksImport(import_date=import_date, radio_name=radio_name, for_date=day))
+            cls.commit_data(tracks_import.TracksImport(import_date=import_date,
+                                                       radio_name=radio_name,
+                                                       for_date=day,
+                                                       requester=account_id))
         else:
-            cls.commit_data(tracks_import.TracksImport(import_date=import_date, radio_name=radio_name))
+            cls.commit_data(tracks_import.TracksImport(import_date=import_date,
+                                                       radio_name=radio_name,
+                                                       requester=account_id))
         for track in radio_tracks:
             # db_session = self.create_db_session()
             # new_track = db_session.query(TrackModel).filter_by(common_name=track["common_name"]).scalar() is None
             # db_session.close()
             # if new_track:
             if track["common_name"] not in db_tracks:
-                res = cls.commit_data(track.Track(
+                res = cls.commit_data(track_db.Track(
                     common_name=track['common_name'],
                     radio_name=radio_name,
                     play_date=track['play_date'],
                     title=track['title'],
                     artist=track['artist'],
                     album_name=track.get('album_name', ''),
-                    db_import_date=import_date,
                     genre=track['genre']
                 ))
                 if res['success']:
                     updated_tracks.append(track["common_name"])
+                    added_ids.append(res['id'])
                 else:
                     track['error'] = res['result']
                     failed_tracks.append(track)
@@ -494,19 +500,21 @@ class  Radio(BaseExtended):
                 already_added_tracks.append(track)
 
         end = datetime.now()
+        added_ids = str(added_ids)[1:-1]
         import_duration = round((end - start_time).total_seconds(), 2)
         num_tracks_added = len(updated_tracks)
         num_tracks_requested = len(radio_tracks)
         res = tracks_import.TracksImport.update_row(data={
+                                                            'tracks': added_ids,
                                                             'import_date': import_date,
                                                             'num_tracks_added': num_tracks_added,
                                                             'num_tracks_requested': num_tracks_requested,
-                                                            'import_duration': import_duration,
-                                                            'requester': account_id})
+                                                            'import_duration': import_duration})
 
         return {'success': res['success'],
                 'updated': updated_tracks,
                 'already_added': already_added_tracks,
+                'added_ids': added_ids,
                 'failed': failed_tracks,
                 'total tracks number': num_tracks_requested,
                 'num_tracks_requested': num_tracks_requested,
@@ -621,10 +629,10 @@ class  Radio(BaseExtended):
                 num_tracks_added += len(res.get('added', ''))
                 for track in res['added']:
                     track['spotify_export_date'] = export_date
-                    track.Track.update_row(data=track)
+                    track_db.Track.update_row(data=track)
 
         for track in ress['failed_to_find']:
-            track.Track.update_row(data={'common_name': track,
+            track_db.Track.update_row(data={'common_name': track,
                                             'failed_to_spotify': 'True',
                                             'spotify_export_date': export_date})
 
