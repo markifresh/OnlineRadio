@@ -3,6 +3,7 @@ from application.db_models import radio
 from application.db_models import tracks_export
 from flask_restx import Namespace, Resource, fields
 from application.schema_models import radios_schemas
+from application.schema_models import validators
 
 
 radios_api = Namespace('Radios', description='Methods of Radio')
@@ -51,20 +52,39 @@ class RadiosUpdate(Resource):
         return radio.Radio.update_all_radios_tracks()
 
 
-@radios_api.route('/<name>/import')
-@radios_api.response(404, 'Radio not found')
-class RadioUpdate(Resource):
+# @radios_api.route('/<name>/import')
+# @radios_api.response(404, 'Radio not found')
+# class RadioImport(Resource):
+#
+#     @radios_api.response(500, 'Invalid values')
+#     #@radios_api.param('name', 'Radio name')
+#     @radios_api.expect(radios_schemas.radio_tracks_request)
+#     #@radios_api.marshal_with(radios_schemas.radio_tracks_update)
+#     def post(self, name):
+#         """ Import tracks for radio (adds all yesterdays tracks) """
+#         print(request.form)
+#         data = request.json or {}
+#         account_id = data.get('account_id', '')
+#         date = data.get('date')
+#         return {'result': True}
+#         #return radio.Radio.update_radio_tracks(radio_name=name, day=date, account_id=account_id)
+
+
+@radios_api.route('/<name>/import/per_range')
+class RadioImport4DateRange(Resource):
 
     @radios_api.response(500, 'Invalid values')
-    @radios_api.param('name', 'Radio name')
-    @radios_api.expect(radios_schemas.radio_tracks_request)
-    @radios_api.marshal_with(radios_schemas.radio_tracks_update)
-    def post(self, name):
+    # @radios_api.param('name', 'Radio name')
+    # @radios_api.param('radio_range', 'Range for import')
+    #@radios_api.expect(radios_schemas.radio_tracks_request)
+    @radios_api.expect(validators.radio_req, validators.date_range_req, validate=True)
+    @radios_api.expect(radios_schemas.radio_tracks_request_per_range)
+    #@radios_api.marshal_with(radios_schemas.radio_tracks_update)
+    def post(self, name, radio_range):
         """ Import tracks for radio (adds all yesterdays tracks) """
         data = request.json or {}
         account_id = data.get('account_id', '')
-        date = data.get('date')
-        return radio.Radio.update_radio_tracks(radio_name=name, day=date, account_id=account_id)
+        return {'result': (True, name, radio_range) }
 
     # @radios_api.response(500, 'Invalid values')
     # @radios_api.marshal_with(radios_schemas.radio_tracks_update)
