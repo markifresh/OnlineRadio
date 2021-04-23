@@ -1,4 +1,4 @@
-from flask import redirect, url_for, Blueprint, request, current_app, session
+from flask import redirect, url_for, Blueprint, request, current_app, session, make_response
 from config import SpotifyConfig, DeezerConfig
 from json import loads as json_loads
 from requests import post as req_post
@@ -14,6 +14,13 @@ oauth = Blueprint('oauth', __name__, template_folder='templates')
 
 def redirect_to_previous_page():
     return request.referrer if request.referrer else url_for('oauth.auth')
+
+@oauth.route('/set_cookies')
+def set_cookies():
+    resp = make_response(redirect(url_for('oauth.auth')))
+    resp.set_cookie('user_id', session['ms_user']['id'])
+    return resp
+
 
 @oauth.route('/auth')
 def auth():
@@ -44,6 +51,7 @@ def auth():
     session['configured'] = True
     User.update_row(user_dict)
     return redirect(url_for('radios.radios_list'))
+
 
 
 
@@ -88,7 +96,7 @@ def spotify_callback():
     session['oauth'] = response_data
     session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=response_data['expires_in'])
 
-    return redirect(url_for('oauth.auth'))
+    return redirect(url_for('oauth.set_cookies'))
 
 
 
@@ -134,4 +142,4 @@ def deezer_callback():
     session['oauth'] = {'token': token,
                         'expiration_time': datetime.now() + timedelta(seconds=expires_in)}
 
-    return redirect(url_for('oauth.auth'))
+    return redirect(url_for('oauth.set_cookies'))
