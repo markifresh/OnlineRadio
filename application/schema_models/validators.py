@@ -1,25 +1,32 @@
 from datetime import datetime, timedelta
 from flask import abort, request
 from flask_restx import reqparse, inputs
-from config import date_format
+from config import date_format, import_date_format, date_hint
+from application.db_models.radio import Radio
+from config import users_settings
 
 current_year = str(datetime.now().year)
 # https://regexr.com/
 # date_regx_format = f'^(0[1-9]|1[0-9]|2[0-9]|3[0-1])(-)(0[1-9]|1[0-2])(-){current_year}+$'
 # time_regx_format = f'^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])+$'
-date_regx_format = f'^(0[1-9]|1[0-9]|2[0-9]|3[0-1])-(0[1-9]|1[0-2])-{current_year}+$'   # 01-01-2021
-time_regx_format = f'^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])+$'                  # 00:00:00
+# date_regx_format = f'^(0[1-9]|1[0-9]|2[0-9]|3[0-1])-(0[1-9]|1[0-2])-{current_year}+$'   # 01-01-2021
+
+day_regx = '(0[1-9]|1[0-9]|2[0-9]|3[0-1])'
+month_regx = '(0[1-9]|1[0-2])'
+date_regx_format = f'^{current_year}-{month_regx}-{day_regx}+$'             # 2021-01-01
+time_regx_format = f'^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])+$'      # 00:00:00
 datetime_regx_format = date_regx_format.replace('+$', ' ') + time_regx_format.replace('^', '')
+date_datetime_regx_format = date_regx_format + '|' + datetime_regx_format
 
 date_range_req = reqparse.RequestParser()
 date_range_req.add_argument('start',
                             type=inputs.regex(date_regx_format),
-                            help=f'use format: dd-mm-{current_year}',
+                            help=f'use format: {date_hint}',
                             required=True)
 
 date_range_req.add_argument('end',
                             type=inputs.regex(date_regx_format),
-                            help=f'use format: dd-mm-{current_year}',
+                            help=f'use format: {date_hint}',
                             required=True)
 
 limit_req = reqparse.RequestParser()
@@ -72,3 +79,14 @@ def validate_date_range_post(start, end):
 
     return start, end
 
+
+def validate_radio_name(radio_name):
+    radios = [radio[0] for radio in Radio.query(Radio.name)]
+    if radio_name not in radios:
+        abort(400, f'radio "{radio_name}" does not exists')
+
+
+def validate_setting(setting):
+    global_settings = [setting['option_name'] for setting in users_settings]
+    if setting not in global_settings:
+        abort(400, f'setting "{setting}" does not exists')

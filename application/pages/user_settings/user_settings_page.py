@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, session
 from application.db_models.radio import Radio
 from flask import current_app as app
 # from application.apis.radios.root import list_radios
-from config import user_settings as options_list
+from config import users_settings as options_list
 
 user_settings = Blueprint('user_settings', __name__, template_folder='templates', static_folder='static')
 
@@ -11,4 +11,6 @@ def show_settings():
     # from config import APIConfig, config_class_to_dict
     # session['api_keys'] = config_class_to_dict(APIConfig)
     # print(session)
-    return render_template('user_settings_page.html', radios=Radio.get_all_radios(), options_list=options_list)
+    return render_template('user_settings_page.html',
+                           radios=Radio.get_all_radios(),
+                           options_list=options_list)

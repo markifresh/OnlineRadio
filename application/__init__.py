@@ -4,7 +4,8 @@ from sqlalchemy.orm import scoped_session
 from flask_restx import Api
 from flask_login import LoginManager
 from flask_restx import fields
-from config import DevConfig, ProdConfig
+from config import DevConfig, ProdConfig, import_date_format, import_datetime_format
+from datetime import date, datetime
 
 # import werkzeug
 # werkzeug.cached_property = werkzeug.utils.cached_property
@@ -151,3 +152,36 @@ def create_dbs():
     from application.db_models.radio import Radio
     Radio.create_tables()
     # Radio.update_radios_list
+
+def convert_to_date(date_input):
+    full_date = None
+    if isinstance(date_input, str) and '-' in date_input:
+        date_input = date_input.split(' ')
+        if len(date_input) == 2:
+            date_date, date_time = date_input
+            if ':' in date_date:
+                date_time, date_date = date_date, date_time
+            full_date = datetime.strptime(date_date + ' ' + date_time, import_datetime_format)
+        else:
+            full_date = datetime.strptime(date_input[0], import_date_format)
+
+    elif isinstance(date_input, datetime):
+        full_date = date_input
+
+    elif isinstance(date_input, date):
+        full_date = datetime(date_input.year, date_input.month, date_input.day)
+
+    if not full_date:
+        raise Exception(f'Date "{date_input}" does not match supported formats'
+                        f' ({import_date_format}, {import_datetime_format})')
+
+    return full_date
+
+def get_data_range(start_date, end_date):
+    start_date = convert_to_date(start_date)
+    end_date = convert_to_date(end_date)
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    return start_date, end_date

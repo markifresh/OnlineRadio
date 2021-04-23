@@ -8,6 +8,8 @@ from application.db_models import tracks_import
 from application.db_models import tracks_export
 from application.db_models import radio
 from application.db_models import track
+from application.CustomExceptions import UniqueDBObjectError
+from config import users_settings
 
 class User(UserMixin, BaseExtended):
     unique_search_field = 'account_id'
@@ -21,7 +23,7 @@ class User(UserMixin, BaseExtended):
     account_id = Column(String)
     account_uri = Column(String, unique=True)
     last_login = Column(DateTime)
-    settings = Column(JSON)     # export liked automatically to service
+    settings = Column(String)     # export liked automatically to service
     radios = Column(String)
     liked_tracks = Column(String)
     exports = relationship('tracks_export.TracksExport', lazy='dynamic')
@@ -52,7 +54,6 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user(cls, account_id):
     # account_id in format "<ms_service>:<account_id>"
-        result = None
         res = cls.query(cls).filter(cls.account_id == account_id)
 
             # cls.account_id,
@@ -62,11 +63,12 @@ class User(UserMixin, BaseExtended):
             # cls.last_login,
             # cls.service_name,
             # cls.settings
+        objects_count = res.count()
+        if objects_count != 1:
+            raise UniqueDBObjectError(account_id, objects_count, cls.__name__)
 
-        if res.count() == 1:
-            result = res.first()
+        return res.first()
 
-        return result
 
     @classmethod
     def user_update(cls, update_dict):
@@ -80,7 +82,6 @@ class User(UserMixin, BaseExtended):
         user = cls.get_user(account_id)
         if not user.radios:
             return []
-
         radios_list = user.radios[:-1].split(',')
         #return radio.Radio.get_radios_by_name(radios_list)
         return radio.Radio.query(radio.Radio).filter(radio.Radio.name.in_(radios_list)).all()
@@ -251,6 +252,70 @@ class User(UserMixin, BaseExtended):
         for one_export in exports:
             tracks.append(exports_db.get_export_tracks(one_export.export_date))
         return tracks
+
+    @classmethod
+    def add_user_radio(cls, account_id, radio_name):
+        radios = [radio_obj.name for radio_obj in cls.get_user_radios(account_id)]
+
+        if radio_name in radios:
+            raise Exception(f'radio "{radio_name}" already in user radios')
+
+        radios.append(radio_name)
+        radios_str = ''
+        for radio_str in radios:
+            radios_str += radio_str + ','
+
+        return cls.update_row({'radios': radios_str, 'account_id': account_id})
+
+    @classmethod
+    def delete_user_radio(cls, account_id, radio_name):
+        radios = [radio_obj.name for radio_obj in cls.get_user_radios(account_id)]
+
+        if radio_name not in radios:
+            raise Exception(f'radio "{radio_name}" not in user radios')
+
+        radios.remove(radio_name)
+        radios_str = ''
+        for radio_str in radios:
+            radios_str += radio_str + ','
+
+        return cls.update_row({'radios': radios_str, 'account_id': account_id})
+
+    @classmethod
+    def get_user_settings(cls, account_id):
+        settings = cls.get_user(account_id).settings
+        if not settings:
+            return []
+        else:
+            return settings[:-1].split(',')
+
+    @classmethod
+    def add_user_setting(cls, account_id, setting):
+        user_settings = cls.get_user_settings(account_id)
+
+        if setting in user_settings:
+            raise Exception(f'setting "{setting}" already in user settings')
+
+        user_settings.append(setting)
+        settings_str = ''
+        for user_setting in user_settings:
+            settings_str += user_setting + ','
+
+        return cls.update_row({'settings': settings_str, 'account_id': account_id})
+
+    @classmethod
+    def delete_user_setting(cls, account_id, setting):
+        user_settings = cls.get_user_settings(account_id)
+
+        if setting not in user_settings:
+            raise Exception(f'setting "{setting}" not in user settings')
+
+        user_settings.remove(setting)
+        settings_str = ''
+        for user_setting in user_settings:
+            settings_str += user_setting + ','
+
+        return cls.update_row({'settings': settings_str, 'account_id': account_id})
 
     # @classmethod
     # def get_user_import_

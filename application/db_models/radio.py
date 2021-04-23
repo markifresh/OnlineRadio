@@ -14,6 +14,7 @@ from sqlalchemy import Column, Integer, String, Sequence, DateTime, JSON
 from sqlalchemy.orm import relationship
 from traceback import format_exc as traceback_format_exc
 from datetime import datetime, timedelta, date
+from config import import_datetime_format
 
 from time import sleep
 from selenium import webdriver
@@ -521,7 +522,7 @@ class  Radio(BaseExtended):
                 'num_tracks_added': num_tracks_added,
                 'tracks': radio_tracks,
                 'update_time_sec': import_duration,
-                'import_date': import_date.strftime('%d-%m-%Y %H:%M:%S'),
+                'import_date': import_date.strftime(import_datetime_format),
                 'for_date': str(day),
                 'res': res,
                 'requester': account_id}
@@ -529,8 +530,7 @@ class  Radio(BaseExtended):
     @classmethod
     def update_radio_tracks(cls, radio_name, day="", account_id=""):
         if not day:
-            day = datetime.now() - timedelta(days=1)
-
+            day = datetime.today() - timedelta(days=1)
         start = datetime.now()
         radio_tracks = RadioWorker.create_radio(radio_name).get_radio_tracks(day)
 
@@ -542,18 +542,16 @@ class  Radio(BaseExtended):
 
 
     @classmethod
-    def update_radio_tracks_per_range(cls, radio_name, start_date=None, end_date=None):
+    def update_radio_tracks_per_range(cls, radio_name, start_date=None, end_date=None, account_id=""):
         start_time = datetime.now()
         tracks = []
         tracks_req = RadioWorker.create_radio(radio_name).get_radio_tracks_per_range(start_date, end_date)
 
-        for result in tracks_req:
-            if result['success']:
-                tracks += result['result']
-            else:
-                return {'success': False, 'result': tracks_req}
+        if not tracks_req['success']:
+            return {'success': False, 'result': tracks_req}
 
-        return cls.import_tracks_to_db(radio_name=radio_name, day=None, start_time=start_time, radio_tracks=tracks)
+        return cls.import_tracks_to_db(radio_name=radio_name, day=None, start_time=start_time,
+                                       radio_tracks=tracks_req['result'], account_id=account_id)
 
 
     @classmethod

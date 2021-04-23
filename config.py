@@ -6,8 +6,18 @@ from logging import INFO, DEBUG
 env_path = Path('.') / '.env'
 load_dotenv(dotenv_path=env_path)
 
-date_format = '%Y-%m-%dT%H:%M:%S.%f'
-user_settings = [
+import_date_format = '%Y-%m-%d'
+import_time_format = '%H:%M:%S'
+import_datetime_format = import_date_format + ' ' + import_time_format
+
+date_format = f'{import_date_format}T{import_time_format}.%f'
+
+date_hint = 'yyyy-mm-dd'
+if import_date_format == "%d-%m-%Y":
+    date_hint = 'dd-mm-yyyy'
+
+
+users_settings = [
                    {'option_name': 'daily_subscription',
                    'description': 'Each day you will receive all tracks for previous day per radios'},
 

@@ -54,3 +54,7 @@ radio_tracks_request_per_range = radios_schemas.model('radio_tracks_request_per_
     'start_date': fields.String,
     'end_date': fields.String
 })
+
+radio_name = radios_schemas.model('radio_name', {
+    'radio_name': fields.String(required=True, max_length=10)
+})

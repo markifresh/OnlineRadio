@@ -19,16 +19,13 @@ class DBImports(Resource):
         from_id_req = request.args.get('from_id')
         return tracks_import.TracksImport.get_imports(from_id_req, limit)
 
-    @dbimports_api.response(500, 'Invalid values')
     @dbimports_api.expect(dbimports_schemas.make_import, validate=True)
-    @dbimports_api.marshal_with(dbimports_schemas.di_full)
+    @dbimports_api.marshal_with(dbimports_schemas.post_result)
     def post(self):
         """ Import tracks for radio (adds all yesterdays tracks) """
         data = request.json or {}
         account_id = data.get('account_id', '')
         date = data.get('date')
-        if date:
-            date = validators.validate_date(date)
         radio_name = data.get('radio_name')
         return radio.Radio.update_radio_tracks(radio_name=radio_name, day=date, account_id=account_id)
 
@@ -77,15 +74,19 @@ class DBImports4Date(Resource):
 
     @dbimports_api.response(500, 'Invalid values')
     @dbimports_api.expect(dbimports_schemas.make_import_per_range, validate=True)
-    #@dbimports_api.marshal_with(dbimports_schemas.di_full)
+    @dbimports_api.marshal_with(dbimports_schemas.post_result)
     def post(self):
-        """ Import tracks for radio (adds all yesterdays tracks) """
+        """ Import tracks for radio per date range """
         data = request.json or {}
         account_id = data.get('account_id', '')
-        start, end = validators.validate_date_range_post(data.get('start'), data.get('end'))
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
         radio_name = data.get('radio_name')
-        return {'res': True}
-        #return radio.Radio.update_radio_tracks(radio_name=radio_name, day=date, account_id=account_id)
+        #return {'res': True}
+        return radio.Radio.update_radio_tracks_per_range(radio_name=radio_name,
+                                                         start_date=start_date,
+                                                         end_date=end_date,
+                                                         account_id=account_id)
 
 @dbimports_api.route('/num/per_date')
 class DBImports4DateNum(Resource):

@@ -2,9 +2,8 @@ from flask_restx import Namespace, fields
 
 users_schemas = Namespace('users_schemas', description='Input Output schemas for User')
 
-user_settings = users_schemas.model('user_settings', {
-    'a': fields.String(description='user settings'),
-
+user_setting = users_schemas.model('user_setting', {
+    'user_setting': fields.String(description='user setting', max_length=20),
 })
 
 
@@ -23,7 +22,7 @@ user_full = users_schemas.model('user_full', {
     'last_login': fields.DateTime(description='user creation name', required=False),
     'service_name': fields.String(description='name of music service', required=False),
     'radios': fields.String(description='name of music service', required=False),
-    'settings': fields.Nested(user_settings, description='user settings', required=False),
+    'settings': fields.String(description='user settings', required=False),
     # 'settings': fields.Raw(description='user settings', required=False),
     # add radios as nested field (import schema from radio)
     # booking_fields['end_dt'] = fields.Nested(namespace.model('timing_fields', timing_fields))
@@ -31,3 +30,8 @@ user_full = users_schemas.model('user_full', {
 })
 
 user_update = user_full
+
+user_radios_update = users_schemas.model('user_radios_update', {
+    'radios': fields.List(fields.String, description='user id')
+})
+

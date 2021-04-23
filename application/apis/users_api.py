@@ -1,7 +1,7 @@
 from application.db_models import user, tracks_import, tracks_export
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask import request
-from application.schema_models import users_schemas, validators, dbimports_schemas, exports_schemas, tracks_schemas
+from application.schema_models import users_schemas, validators, dbimports_schemas, exports_schemas, tracks_schemas, radios_schemas
 from datetime import datetime
 from config import APIConfig
 
@@ -113,3 +113,48 @@ class UserRadioExportsTracks(Resource):
     # def put(self, common_name):
     #     """ Update track by name """
     #     return {'result': track_db.Track.get_track(common_name)}
+
+@users_api.route('/<account_id>/radios')
+@users_api.param('account_id', 'Account ID of user')
+class UserRadios(Resource):
+
+    @users_api.marshal_list_with(radios_schemas.radio_brief)
+    def get(self, account_id):
+        """ All radios of user """
+        return user.User.get_user_radios(account_id)
+
+    @users_api.expect(radios_schemas.radio_name, validate=True)
+    def put(self, account_id):
+        """ Add user radios """
+        radio_name = request.json.get('radio_name')
+        validators.validate_radio_name(radio_name)
+        return user.User.add_user_radio(account_id, radio_name)
+
+    @users_api.expect(radios_schemas.radio_name, validate=True)
+    def delete(self, account_id):
+        """ Delete user radios """
+        radio_name = request.json.get('radio_name')
+        validators.validate_radio_name(radio_name)
+        return user.User.delete_user_radio(account_id, radio_name)
+
+@users_api.route('/<account_id>/settings')
+@users_api.param('account_id', 'Account ID of user')
+class UserSettings(Resource):
+
+    def get(self, account_id):
+        """ All Settings of user """
+        return {'result': user.User.get_user_settings(account_id)}
+
+    @users_api.expect(users_schemas.user_setting, validate=True)
+    def put(self, account_id):
+        """ Add user setting """
+        user_setting = request.json.get('user_setting')
+        validators.validate_setting(user_setting)
+        return user.User.add_user_setting(account_id, user_setting)
+
+    @users_api.expect(users_schemas.user_setting, validate=True)
+    def delete(self, account_id):
+        """ Delete user setting """
+        user_setting = request.json.get('user_setting')
+        validators.validate_setting(user_setting)
+        return user.User.delete_user_setting(account_id, user_setting)
