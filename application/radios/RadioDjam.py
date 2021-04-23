@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, date
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor
 from application.workers.ExtraFunc import get_date_range_list, sort_tracks_list
-
+from application import get_data_range
 
 class Djam(RadioAbstract):
     radio_id = 'DJAM'
@@ -20,30 +20,24 @@ class Djam(RadioAbstract):
     def __init__(self, radio_id=radio_id):
         super().__init__(radio_id)
 
-    def get_radio_tracks(self, play_date):
+    # as API of radio updates list of songs once in 40-60 mins, impossible to get tracks for latest hour
+    # todo: if last hour in request, add to result output: get_latest_tracks
+    def get_radio_tracks_per_range(self, start_date, end_date):
         request_time = datetime.now()
-        if isinstance(play_date, str) and '-' in play_date:
-            day, month, year = play_date.split('-')[:3]             #06/09/2020
-            day, month, year = int(day), int(month), int(year)
-            play_date = datetime(year=year, month=month, day=day)
+        start_date, end_date = get_data_range(start_date, end_date)
 
-        elif isinstance(play_date, (datetime, date)):
-            day = play_date.day
-            play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
-
-        else:
-            return {'success': False, 'result': 'incorrect date format', 'respond': ''}
-
+        start_original = start_date
         responds_list = []
         res_list = []
         dates_list = []
-        dates_list.append(play_date)
+        dates_list.append(start_date)
         time_step_min = 30
-        play_date += timedelta(minutes=time_step_min)
+        start_date += timedelta(minutes=time_step_min)
 
-        while play_date.day == day:
-            dates_list.append(play_date)
-            play_date += timedelta(minutes=time_step_min)
+        while start_date < end_date:
+            dates_list.append(start_date)
+            start_date += timedelta(minutes=time_step_min)
+        dates_list.append(start_date)
 
         def get_jam_tracks_threads(one_date):
             data = {'day': one_date.day, 'month': one_date.month, 'hour': one_date.hour, 'minute': one_date.minute}
@@ -79,7 +73,7 @@ class Djam(RadioAbstract):
             executor.map(get_jam_tracks_threads, dates_list)
 
         return {'success': True, 'result': sort_tracks_list(res_list), 'responds_list': responds_list, 'respond': '',
-                'for_day': play_date, 'request_time': request_time}
+                'request_time': request_time, 'start_date': start_original, 'end_date': end_date, 'for_date': ''}
 
 
     def get_current_track(self):

@@ -5,6 +5,7 @@ from json import loads as json_loads
 from concurrent.futures import ThreadPoolExecutor
 from application.workers.ExtraFunc import sort_tracks_list
 from config import APIConfig
+from application import get_data_range
 
 
 class Fip(RadioAbstract):
@@ -18,10 +19,23 @@ class Fip(RadioAbstract):
     genre = 'pop,soul,jazz,rock'
 
     def __init__(self, radio_id):
-        super().__init__(radio_id)
+        radios = self.get_radios()
+
+        if not radios['success']:
+            raise Exception(f'Failed to get radios: {radios["result"]}')
+
+        radios = radios['result']
+        if radio_id not in radios.keys():
+            raise Exception(f'Can not find radio "{radio_id}" in list of stations: {list(radios.keys())}')
+
+        radio = radios[radio_id]
+        self.radio_id = radio_id
+        self.stream_url = radio['stream_url']
+        self.genre = radio['genre']
+        self.description = radio['description']
 
     @classmethod
-    def get_stations(cls):
+    def get_radios(cls):
         json = {'query': '{ brand'
         f'(id: {cls.parent_id}) '
                          '{ id  liveStream webRadios { id liveStream description} } } '}
@@ -29,7 +43,8 @@ class Fip(RadioAbstract):
         res = req_post(url=cls.tracks_request_url, json=json, headers=headers)
 
         if res.status_code != 200:
-            return {'success': False, 'result': res.status_code, 'respond': res.text}
+            return {'success': False, 'result': res.text}
+
         radio_url = cls.url
         radio = json_loads(res.text)['data']['brand']
         radios = radio['webRadios']
@@ -53,45 +68,25 @@ class Fip(RadioAbstract):
             if excluded_station in fip_stations:
                 del fip_stations[excluded_station]
 
-        return {'success': True, 'result': fip_stations, 'respond': ''}
+        return {'success': len(fip_stations) > 0, 'result': fip_stations, 'respond': ''}
 
-    @classmethod
-    def get_radios(cls):
-        result = []
-        stations = cls.get_stations()
-        if stations['success']:
-            result = stations['result']
-        return {'success': len(result) > 0, 'result': result}
 
-    def get_radio_tracks(self, play_date):
+    def get_radio_tracks_per_range(self, start_date, end_date):
         request_time = datetime.now()
+        start_date, end_date = get_data_range(start_date, end_date)
 
-        if isinstance(play_date, str) and '-' in play_date:
-            orig_date = play_date
-            day, month, year = play_date.split('-')[:3]             #06/09/2020
-            day, month, year = int(day), int(month), int(year)
-            play_date = datetime(year=year, month=month, day=day)
-            orig_date = orig_date.replace('-', '/')
+        start_original = start_date
 
-        elif isinstance(play_date, (datetime, date)):
-            orig_date = play_date.strftime('%d/%m/%Y')
-            day = play_date.day
-            play_date = datetime(year=play_date.year, month=play_date.month, day=play_date.day)
-
-        else:
-            return {'success': False, 'result': 'incorrect date format', 'respond': ''}
-
-        from_date = play_date
         responds_list = []
         res_list = []
         dates_list = []
-        dates_list.append(from_date)
+        dates_list.append(start_date)
         time_step = 4
-        from_date += timedelta(hours=time_step)
+        start_date += timedelta(hours=time_step)
 
-        while from_date.day == day:
-            dates_list.append(from_date)
-            from_date += timedelta(hours=time_step)
+        while start_date < end_date:
+            dates_list.append(start_date)
+            start_date += timedelta(hours=time_step)
 
         def get_tracks_by_threads(one_date):
             start_time = str(int(one_date.timestamp()))
@@ -132,7 +127,7 @@ class Fip(RadioAbstract):
             executor.map(get_tracks_by_threads, dates_list)
 
         return {'success': True, 'result': sort_tracks_list(res_list), 'responds_list': responds_list, 'respond': '',
-                'for_date': play_date, 'request_time': request_time}
+                'for_date': '', 'request_time': request_time, 'start_date': start_original, 'end_date': end_date,}
 
     def get_current_track(self):
         orig_date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
