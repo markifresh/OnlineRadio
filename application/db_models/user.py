@@ -8,7 +8,7 @@ from application.db_models import tracks_import
 from application.db_models import tracks_export
 from application.db_models import radio
 from application.db_models import track
-from application.CustomExceptions import UniqueDBObjectError
+from application.CustomExceptions import UniqueDBObjectError, BasicCustomException
 from config import users_settings
 
 class User(UserMixin, BaseExtended):
@@ -258,7 +258,7 @@ class User(UserMixin, BaseExtended):
         radios = [radio_obj.name for radio_obj in cls.get_user_radios(account_id)]
 
         if radio_name in radios:
-            raise Exception(f'radio "{radio_name}" already in user radios')
+            raise BasicCustomException(f'radio "{radio_name}" already in user radios')
 
         radios.append(radio_name)
         radios_str = ''
@@ -272,7 +272,7 @@ class User(UserMixin, BaseExtended):
         radios = [radio_obj.name for radio_obj in cls.get_user_radios(account_id)]
 
         if radio_name not in radios:
-            raise Exception(f'radio "{radio_name}" not in user radios')
+            raise BasicCustomException(f'radio "{radio_name}" not in user radios')
 
         radios.remove(radio_name)
         radios_str = ''
@@ -294,7 +294,7 @@ class User(UserMixin, BaseExtended):
         user_settings = cls.get_user_settings(account_id)
 
         if setting in user_settings:
-            raise Exception(f'setting "{setting}" already in user settings')
+            raise BasicCustomException(f'setting "{setting}" already in user settings')
 
         user_settings.append(setting)
         settings_str = ''
@@ -308,7 +308,7 @@ class User(UserMixin, BaseExtended):
         user_settings = cls.get_user_settings(account_id)
 
         if setting not in user_settings:
-            raise Exception(f'setting "{setting}" not in user settings')
+            raise BasicCustomException(f'setting "{setting}" not in user settings')
 
         user_settings.remove(setting)
         settings_str = ''

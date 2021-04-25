@@ -78,20 +78,20 @@
         <div class="container" style="margin-bottom: 80px">
             <div class="list-group mt-3">
                 {% for option in options_list %}
-                <a type="button" class="btn btn-dark btn-lg shadow-none mb-3" onclick="optionClick(this)">
+                <button type="button" id="{{ option['option_name']}}" class="btn btn-dark btn-lg shadow-none mb-3" onclick="optionClick(this)">
                   <div class="row">
                     <div class="col-1">
                         <span class="option-disabled">○</span>
                         <span class="option-enabled" style="display: none">&#x2713;</span>
                     </div>
-                    <div id="{{ option['option_name']}}" class="col-2 optionName">
+                    <div class="col-2 optionName">
                       {{ option['option_name'] | replace ('_', ' ') | title() }}
                     </div>
                     <div class="col-9">
                       {{ option['description'] }}
                     </div>
                   </div>
-                </a>
+                </button>
                 {% endfor %}
             </div>
         </div>
@@ -119,6 +119,7 @@
 </div>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/settings.js') }}"></script>
   </body>
 </html>

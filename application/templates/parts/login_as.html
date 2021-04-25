@@ -1,6 +1,6 @@
 <div class="col-3 my-1" style="text-align: end">
      {% if session['oauth'] %}
-          <a class="btn btn-outline-secondary my-sm-0 mr-2" >Personal info</a>
+          <a class="btn btn-outline-secondary my-sm-0 mr-2" href="{{ url_for('user_settings.show_settings') }}">Settings</a>
           <a class="btn btn-outline-secondary my-sm-0 mr-2 " href="{{ session['ms_user']['uri'] }}">
                Logged as {{ session['ms_user']['display_name'] }}
           </a>

@@ -77,7 +77,7 @@ class BaseExtended(Base):
             try:
                 obj.update(data)
                 cls.session.commit()
-                result = {'success': True, 'result': ''}
+                result = {'success': True, 'result': data}
             except:
                 cls.session.rollback()
                 result = {'success': False, 'result': traceback_format_exc()}
