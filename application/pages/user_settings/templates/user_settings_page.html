@@ -14,7 +14,7 @@
 
 <div>
     {% if not session['configured'] %}
-        <a id="pageHeader" href="/radios" type="button" class="btn btn-secondary disabled mb-1 text-start" style="width:100%">
+        <a id="pageHeader" href="/radios" type="button" class="btn btn-secondary disabled mb-1 text-start" style="width:100%; display:none">
             Please select few radios to begin
     {% else %}
         <a id="pageHeader" href="/radios" type="button" class="btn btn-success mb-1 text-start" style="width:100%; display:none">
@@ -36,10 +36,10 @@
     <div class="row align-items-center">
       <div class="col-2" style="text-align: start">
         <h2 class="text-muted font-weight-bold" onclick="cardClick('card-{{ radio.name }}')">
-            <button class="btn selected py-0 mt-0" style="display:none">
+            <button class="btn selected shadow-none py-0 mt-0" style="display:none">
                 &#x2713;
             </button>
-            <button class="btn unselected py-0 mt-0">
+            <button class="btn unselected shadow-none py-0 mt-0">
                 ○
             </button>
         </h2>
@@ -118,8 +118,8 @@
   </div>
 </div>
 
-<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/settings.js') }}"></script>
   </body>
 </html>

@@ -6,3 +6,19 @@ function getCookie(name) {
           }
     return null;
 }
+
+function commonFetch(url, fetchMethod, data, func, errorFunc){
+  let myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  let requestOptions = {
+    method: fetchMethod,
+    body: JSON.stringify(data),
+    headers: myHeaders,
+  };
+
+  fetch(url, requestOptions)
+  .then(response => response.json())
+  .then(json => func(data))
+  .catch(error => errorFunc(error));
+}

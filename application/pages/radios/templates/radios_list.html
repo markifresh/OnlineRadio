@@ -4,7 +4,8 @@
 {% include 'parts/login_as.html' %}
 {% include 'parts/navbar_menu_close.html' %}
 {% include 'parts/navbar_search_open.html' %}
-<a id='importAll' class="btn btn-outline-secondary my-sm-0 mr-2" >Import All</a>
+<a id='importAll' class="btn btn-outline-secondary my-sm-0 mx-2" >Update All</a>
+<a id='exportAll' class="btn btn-outline-secondary my-sm-0 mx-2" >Export All</a>
 {% include 'parts/navbar_search_close.html' %}
 
 {% include 'parts/navbar_close.html' %}
@@ -61,10 +62,17 @@
       </div>
       <div>
         <button type="button" id="import-{{ radio }}" class="btn btn-outline-info do-import">
-          Make Import
+          Update Radio Tracks List
         </button>
+      </div>
+              <div>
         <button type="button"id="export-{{ radio }}"  class="btn btn-outline-info do-export">
-          Sync Spotify
+          Export Tracks to {{ session['ms_service'] | title  }}
+        </button>
+      </div>
+      <div>
+        <button type="button"id="custom-import-{{ radio }}"  class="btn btn-outline-info do-export">
+          Lookup for specific date
         </button>
       </div>
     </blockquote>
@@ -124,7 +132,7 @@
   </div>
     <div class="card-footer">
     <div class="row">
-
+      <small class="text-muted tracks-num-to-export">{{ radios[radio]['country'] }}</small>
     </div>
   </div>
 
@@ -142,7 +150,9 @@
 
 <!--<audio controls></audio>-->
 
-<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
+<!--<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>-->
 <!--<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>-->
 </body>
 </html>

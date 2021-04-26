@@ -32,7 +32,7 @@ document.body.appendChild(audioObj);
 function setRadiosStreams(){
   if(!sessionStorage.getItem('streamsSet'))
   {
-    fetch('/api/radios/')
+    fetch('/api/users/' + getCookie('user_id') + '/radios/')
       .then(response => response.json())
       .then(data => {
         if(data)

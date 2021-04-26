@@ -71,7 +71,7 @@ class Deezer(MSAbstract):
 
         user = res['result']
         res['result'] = {
-                            'id': user['id'],
+                            'id': str(user['id']),
                             'display_name': user['name'],
                             'uri': f'{DeezerConfig.DEEZER_URL}/profile/{user["id"]}',
                             'firstname': user['firstname'],

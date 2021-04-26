@@ -4,10 +4,6 @@ let toastHeader = document.getElementById('toastHeader');
 let toastBody = document.getElementById('toastBody');
 let pageHeader = document.getElementById('pageHeader');
 
-if(document.querySelectorAll('.selectedCard').length == 0){
-  document.getElementById('navbarToggleExternalContent').remove();
-  // document.querySelector('.navbar-toggler-icon').style.display = "table-row";
-}
 
 if(getCookie('user_id') ){
     selectUserRadios(getCookie('user_id'));
@@ -30,24 +26,19 @@ function errorToast(data){
   toast.show();
 }
 
-function commonFetch(url, fetchMethod, data, func, errorFunc){
-  let myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  let json_body = JSON.stringify(data);
-
-  let requestOptions = {
-    method: fetchMethod,
-    body: json_body,
-    headers: myHeaders,
-  };
-
-  fetch(url, requestOptions)
-  .then(response => response.json())
-  .then(json => func(data))
-  .catch(error => errorFunc(error));
+function headerMissing(){
+    pageHeader.style.display = "";
+    pageHeader.classList.add('disabled', 'btn-secondary');
+    pageHeader.classList.remove('btn-success');
+    pageHeader.innerText = 'Please select few radios to begin'
 }
 
+function headerFilled(){
+    pageHeader.style.display = "";
+    pageHeader.classList.remove('disabled', 'btn-primary');
+    pageHeader.classList.add('btn-success');
+    pageHeader.innerText = 'Click me when you are done!'
+}
 
 // WORKING WITH RADIO CARDS //
 function selectUserRadios(user_id){
@@ -61,6 +52,15 @@ fetch(url)
             domObj.querySelector('.selected').style.display = "";
             domObj.querySelector('.unselected').style.display = "none";
         }
+        return true;
+  })
+  .then(result => {
+      if(document.querySelectorAll('.selectedCard').length == 0){
+      document.getElementById('navbarToggleExternalContent').remove();
+      headerMissing();
+      pageHeader.style.display = "";
+      // document.querySelector('.navbar-toggler-icon').style.display = "table-row";
+}
   })
 }
 
@@ -96,12 +96,8 @@ function addRadioCard(data){
   toastBody.innerText = 'Radio "' + radioName.split('_').join(' ').toUpperCase() + '" was successfully added'
   domObj.querySelector('.selected').style.display = "";
   domObj.querySelector('.unselected').style.display = "none";
-  if (pageHeader.classList.contains('disabled')){
-    pageHeader.style.display = "";
-    pageHeader.classList.remove('disabled', 'btn-primary');
-    pageHeader.classList.add('btn-success');
-    pageHeader.innerText = 'Click me when you are done!'
-    }
+  if (pageHeader.classList.contains('disabled'))
+     headerFilled();
   toast.show();
 }
 
@@ -113,12 +109,9 @@ function deleteRadioCard(data){
   toastBody.innerText = 'Radio "' + radioName.split('_').join(' ').toUpperCase() + '" was successfully removed'
   domObj.querySelector('.selected').style.display = "none";
   domObj.querySelector('.unselected').style.display = "";
-  if (document.querySelectorAll('.selectedCard').length == 0){
-    pageHeader.style.display = "";
-    pageHeader.classList.add('disabled', 'btn-secondary');
-    pageHeader.classList.remove('btn-success');
-    pageHeader.innerText = 'Please select few radios to begin'
-  }
+  if (document.querySelectorAll('.selectedCard').length == 0)
+      headerMissing();
+
   toast.show();
 }
 

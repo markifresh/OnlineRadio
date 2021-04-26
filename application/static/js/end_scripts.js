@@ -1,8 +1,4 @@
-var audioObj = document.createElement('audio');
-audioObj.controls = true;
-audioObj.autoplay = true;
-document.body.appendChild(audioObj);
-audioObj.style.left=0;
+
 //audioObj.style.display="none";
 
  document.querySelector('.container').addEventListener('click', function(){
@@ -20,22 +16,7 @@ audioObj.style.left=0;
       pauseRadio();
  })
 
-function setRadiosStreams(){
-  if(!sessionStorage.getItem('streamsSet'))
-  {
-    fetch('/api/radios/')
-      .then(response => response.json())
-      .then(data => {
-        if(data)
-            {
-              for (let i = 0; i < data.length; i++){
-                sessionStorage.setItem(data[i].name, data[i].stream_url);}
-            }
-          sessionStorage.setItem('streamsSet', 'yes');
-        });
-    }
-}
-setRadiosStreams();
+
 // document.querySelectorAll('.card')
 // document.querySelectorAll('.card .do-import')
 
@@ -113,6 +94,74 @@ importAllRadios('importAll');
 });
 }
 
+document.querySelector('.card').style.backgroundColor = 'rgb(11 0 255 / 9%) !important';
+
+
+
+
+
+
+//////////////////// RADIO PLAYING ///////////////////////
+
+var audioObj = document.createElement('audio');
+audioObj.controls = true;
+audioObj.autoplay = true;
+document.body.appendChild(audioObj);
+audioObj.style.left=0;
+
+function keepPlayingHere(){
+  let radioName = sessionStorage.getItem('playingNow');
+  if(radioName){
+      playRadio('play-' + radioName);
+  }
+}
+keepPlayingHere();
+
+function playRadio(elemId){
+  let radioName = elemId.split('-').pop();
+  if(sessionStorage.getItem('playingNow'))
+      pauseRadio();
+  sessionStorage.setItem('playingNow', radioName);
+  audioObj.src = sessionStorage.getItem(radioName);
+  audioObj.play();
+  document.getElementById('pause-' + radioName).style.display = '';
+  document.getElementById('play-' + radioName).style.display = 'none';
+  document.getElementById('card-' + radioName).style.cssText = 'rgb(11 0 255 / 9%) !important';
+}
+
+function pauseRadio(){
+  audioObj.pause();
+  let tmp = audioObj;
+  audioObj = document.createElement('audio');
+  tmp.remove();
+  audioObj.controls = true;
+  audioObj.style.left=0;
+//  audioObj.style.display="none";
+  document.body.appendChild(audioObj);
+  let radioName = sessionStorage.getItem('playingNow');
+  document.getElementById('pause-' + radioName).style.display = 'none';
+  document.getElementById('play-' + radioName).style.display = '';
+  sessionStorage.removeItem('playingNow');
+  document.getElementById('card-' + radioName).style.cssText = '';
+}
+
+function setRadiosStreams(){
+ fetch('/api/users/' + getCookie('user_id') + '/radios')
+   .then(response => response.json())
+   .then(data => {
+     if(data)
+         {
+           for (let i = 0; i < data.length; i++)
+             sessionStorage.setItem(data[i].name, data[i].stream_url);
+         }
+     });
+}
+setRadiosStreams();
+
+
+
+////////////// Live Search ////////////////
+
 function liveSearch(objectsQuery){
   let searcher = document.getElementById('liveSearch');
   let objs = document.querySelectorAll(objectsQuery);
@@ -146,41 +195,3 @@ function hideElements(objs, bool=true){
             objs[i].style.display = 'block';
         }
 }
-
-document.querySelector('.card').style.backgroundColor = 'rgb(11 0 255 / 9%) !important';
-
-function playRadio(elemId){
-  let radioName = elemId.split('-').pop();
-  if(sessionStorage.getItem('playingNow'))
-      pauseRadio();
-  sessionStorage.setItem('playingNow', radioName);
-  audioObj.src = sessionStorage.getItem(radioName);
-  audioObj.play();
-  document.getElementById('pause-' + radioName).style.display = '';
-  document.getElementById('play-' + radioName).style.display = 'none';
-  document.getElementById('card-' + radioName).style.cssText = 'rgb(11 0 255 / 9%) !important';
-}
-
-function pauseRadio(){
-  audioObj.pause();
-  let tmp = audioObj;
-  audioObj = document.createElement('audio');
-  tmp.remove();
-  audioObj.controls = true;
-  audioObj.style.left=0;
-//  audioObj.style.display="none";
-  document.body.appendChild(audioObj);
-  let radioName = sessionStorage.getItem('playingNow');
-  document.getElementById('pause-' + radioName).style.display = 'none';
-  document.getElementById('play-' + radioName).style.display = '';
-  sessionStorage.removeItem('playingNow');
-  document.getElementById('card-' + radioName).style.cssText = '';
-}
-
-function keepPlayingHere(){
-  let radioName = sessionStorage.getItem('playingNow');
-  if(radioName){
-      playRadio('play-' + radioName);
-  }
-}
-keepPlayingHere();
