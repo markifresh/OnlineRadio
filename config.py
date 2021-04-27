@@ -12,6 +12,10 @@ import_datetime_format = import_date_format + ' ' + import_time_format
 
 date_format = f'{import_date_format}T{import_time_format}.%f'
 
+read_date_format = '%d/%m/%Y'
+read_time_format = '%H:%M:%S'
+read_date_time_format = read_time_format + ' ' + read_date_format
+
 date_hint = 'yyyy-mm-dd'
 if import_date_format == "%d-%m-%Y":
     date_hint = 'dd-mm-yyyy'

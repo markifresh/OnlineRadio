@@ -9,7 +9,7 @@
 {% include 'parts/navbar_search_close.html' %}
 
 {% include 'parts/navbar_close.html' %}
-<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>
+<!--<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>-->
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/radios.css') }}">
 <div class="container">
 
@@ -71,7 +71,7 @@
         </button>
       </div>
       <div>
-        <button type="button"id="custom-import-{{ radio }}"  class="btn btn-outline-info do-export">
+        <button type="button"id="custom-import-{{ radio }}"  class="btn btn-outline-info do-custom-import" style="display:none">
           Lookup for specific date
         </button>
       </div>
@@ -94,9 +94,8 @@
       </div>
       <div class="col">
         <small class="text-muted import-date">
-          {{ radios[radio]['latest_import'] }}
         {% if radios[radio]['latest_import']  %}
-          {{ radios[radio]['latest_import']  }}
+          {{ radios[radio]['latest_import'] | format_date }}
         {% else %}
           No Imports
         {% endif %}
@@ -122,7 +121,7 @@
       <div class="col">
         <small class="text-muted export-date">
           {% if radios[radio]['latest_export'] %}
-            {{ radios[radio]['latest_export'] }}
+            {{ radios[radio]['latest_export'] | format_date }}
           {% else %}
             No Exports
           {% endif %}

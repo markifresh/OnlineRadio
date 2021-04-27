@@ -19,6 +19,7 @@ function commonFetch(url, fetchMethod, data, func, errorFunc){
 
   fetch(url, requestOptions)
   .then(response => response.json())
-  .then(json => func(data))
+  .then(json => func(json))
+//  .then(json => func(data))
   .catch(error => errorFunc(error));
 }

@@ -145,10 +145,10 @@ function addSetting(user_id, settingName){
 }
 
 function addOptionCard(data){
-  let domObj = document.getElementById(data.user_setting);
+  let domObj = document.getElementById(data.setting);
   domObj.classList.toggle('selectedOption');
   toastHeader.innerText = 'Option added';
-  toastBody.innerText = 'Option "' + data.user_setting.replace('_', ' ') + '" was successfully added'
+  toastBody.innerText = 'Option "' + domObj.querySelector('.optionName').innerText  + '" was successfully added'
   domObj.querySelector('.option-enabled').style.display = "";
   domObj.querySelector('.option-disabled').style.display = "none";
   toast.show();
@@ -161,10 +161,10 @@ function deleteSetting(user_id, settingName){
 }
 
 function deleteOptionCard(data){
-  let domObj = document.getElementById(data.user_setting);
+  let domObj = document.getElementById(data.setting);
   domObj.classList.toggle('selectedOption');
   toastHeader.innerText = 'Option removed';
-  toastBody.innerText = 'Option "' + data.user_setting.replace('_', ' ') + '" was successfully removed'
+  toastBody.innerText = 'Option "' + domObj.querySelector('.optionName').innerText + '" was successfully removed'
   domObj.querySelector('.option-enabled').style.display = "none";
   domObj.querySelector('.option-disabled').style.display = "";
   toast.show();

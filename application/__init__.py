@@ -52,7 +52,10 @@ def create_app(confConfClass):
         # # app.register_blueprint(radios_api, url_prefix='/api/radios')
         # app.register_blueprint(tracks_api)
 
-        
+        from application.extenders import jinja_extra
+        app.register_blueprint(jinja_extra.jinja_extra)
+
+
         from .pages.welcome import welcome_page
         app.register_blueprint(welcome_page.welcome, url_prefix='/welcome')
 

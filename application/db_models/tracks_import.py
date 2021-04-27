@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Sequence, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, Sequence, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import lazyload
 from datetime import datetime, timedelta
@@ -7,6 +7,7 @@ from application.workers.ExtraFunc import get_date_range_list
 from application.db_models.extenders_for_db_models import BaseExtended
 from application.db_models import track
 from application.db_models import user
+from config import date_format
 
 
 class TracksImport(BaseExtended):
@@ -22,7 +23,8 @@ class TracksImport(BaseExtended):
     import_duration = Column(Float, default=0)
     for_date = Column(DateTime)  # update_time in ms
     type = Column(String)  # full_day / specific_time
-    requester = Column(String(20), ForeignKey('users.account_uri'), nullable=False)
+    requester = Column(String(20), ForeignKey('users.account_id'), nullable=False)
+    exported = Column(Boolean)
     # ? service_name = Column(String)
 
     def __repr__(self):
@@ -57,7 +59,7 @@ class TracksImport(BaseExtended):
     @classmethod
     def get_import_by_date(cls, import_date):
         if isinstance(import_date, str):
-            import_date = datetime.strptime(import_date, '%Y-%m-%dT%H:%M:%S.%f')
+            import_date = datetime.strptime(import_date, date_format)
         return cls.query(cls).filter(cls.import_date == import_date).one_or_none()
 
     @classmethod

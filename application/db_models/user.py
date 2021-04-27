@@ -210,7 +210,7 @@ class User(UserMixin, BaseExtended):
             if radios.get(record.radio_name):
                 radios[record.radio_name]['num_exported'] += record.num_tracks_added
                 if not radios[record.radio_name].get('latest_export'):
-                    radios[record.radio_name]['latest_import'] = record.export_date
+                    radios[record.radio_name]['latest_export'] = record.export_date
 
         for radio in radios:
             radios[radio]['num_to_export'] = radios[radio]['num_imported'] - radios[radio]['num_exported']
@@ -265,7 +265,10 @@ class User(UserMixin, BaseExtended):
         for radio_str in radios:
             radios_str += radio_str + ','
 
-        return cls.update_row({'radios': radios_str, 'account_id': account_id})
+        result = cls.update_row({'radios': radios_str, 'account_id': account_id})
+        result['radio_name'] = radio_name
+
+        return result
 
     @classmethod
     def delete_user_radio(cls, account_id, radio_name):
@@ -278,8 +281,9 @@ class User(UserMixin, BaseExtended):
         radios_str = ''
         for radio_str in radios:
             radios_str += radio_str + ','
-
-        return cls.update_row({'radios': radios_str, 'account_id': account_id})
+        result = cls.update_row({'radios': radios_str, 'account_id': account_id})
+        result['radio_name'] = radio_name
+        return result
 
     @classmethod
     def get_user_settings(cls, account_id):
@@ -301,7 +305,9 @@ class User(UserMixin, BaseExtended):
         for user_setting in user_settings:
             settings_str += user_setting + ','
 
-        return cls.update_row({'settings': settings_str, 'account_id': account_id})
+        result = cls.update_row({'settings': settings_str, 'account_id': account_id})
+        result['setting'] = setting
+        return result
 
     @classmethod
     def delete_user_setting(cls, account_id, setting):
@@ -315,7 +321,9 @@ class User(UserMixin, BaseExtended):
         for user_setting in user_settings:
             settings_str += user_setting + ','
 
-        return cls.update_row({'settings': settings_str, 'account_id': account_id})
+        result = cls.update_row({'settings': settings_str, 'account_id': account_id})
+        result['setting'] = setting
+        return result
 
     # @classmethod
     # def get_user_import_

@@ -3,11 +3,13 @@
 
  document.querySelector('.container').addEventListener('click', function(){
    if(event.target.classList.contains('do-import'))
-      makeImportExport(event.target, '/api/radios/update/');
+      makeImportExport(event.target, '/api/imports/');
 
+   if(event.target.classList.contains('do-custom-import'))
+      makeImportExport(event.target, '/api/imports/per_date');
 
    if(event.target.classList.contains('do-export'))
-      makeImportExport(event.target, '/api/radios/export/');
+      makeImportExport(event.target, '/api/exports/');
 
     if(event.target.classList.contains('play-radio'))
        playRadio(event.target.id);
@@ -19,19 +21,46 @@
 
 // document.querySelectorAll('.card')
 // document.querySelectorAll('.card .do-import')
+function fillInImportData(){
+}
 
+function fillInExportData(){
+}
 
-function makeImportExport(elem, url){
-// replace setTimeout with api request fetch
-  let makeExport = url.includes('export');
-  console.log(makeExport);
-  let currentBtn = elem.outerHTML;
+function makeImport(user_id, radio_name){
+}
+
+function makeExport(user_id, radio_name){
+}
+
+function getLatestExport(){
+}
+
+function setupImportExportData(data){
+
+}
+
+function makeImportExport(elem, url, funcData){
+// replace button with loader
+  let btnOuter = elem.outerHTML;
+  let height = elem.parentElement.offsetHeight;
+  elem.parentElement.style.marginTop = "4.7%";
+//  let btnInner = elem.innerHTML;
   let radioName = elem.id.split('-').pop();
-  url += radioName;
+  let loader = document.querySelector(".spinner.template");
+  elem.outerHTML = loader.outerHTML.replace("template", radioName);
+  document.querySelector(".spinner." + radioName).style.height = (height) + "px";
+  document.querySelector(".spinner." + radioName).style.display = 'contents';
+
+//  let btnOuter = elem.parentElement.innerHTML;
   let tracksEl = '';
   let dateEl = '';
 
-  if(makeExport)
+
+//  url += radioName;
+
+
+  if(btnOuter.includes('do-export'))
       {
           tracksEl = document.querySelector('#card-' + radioName + ' .tracks-num-to-export');
           dateEl = document.querySelector('#card-' + radioName + ' .export-date');
@@ -45,40 +74,49 @@ function makeImportExport(elem, url){
       }
 
   let tracksNum = parseInt(tracksEl.innerText);
-  // event.target.outerHTML = document.querySelector(".spinner.template").outerHTML.replace('display:none', '');
-  // event.target.style.display = "";
-  elem.innerHTML = '';
-  elem.disabled = true;
-  let border = elem.style.borderColor;
-  elem.style.borderColor = 'rgba(0,0,0,0)';
-  let clonedElem = document.querySelector(".spinner.template").cloneNode(true);
 
-  clonedElem.style.display = 'flex';
-  elem.appendChild(clonedElem);
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
+  let data = { 'account_id': getCookie('user_id'),
+               'radio_name': radioName}
+
+  if(btnOuter.includes('do-export'))
+      data.import_date = funcData.import_data;
+
+  else if(btnOuter.includes('do-custom-import')){
+      data.start_date = funcData.start_date;
+      data.end_date = funcData.end_date;
+    }
+
+  commonFetch(url, 'POST', data, function (fetchResult)
+
+  {
       for(let exportBtn of document.querySelectorAll('.do-export'))
         exportBtn.disabled = false;
-      clonedElem.remove();
-      elem.outerHTML = currentBtn;
+//      clonedElem.remove();
+      document.querySelector(".spinner."+ radioName).parentElement.style.marginTop = "0px";
+      document.querySelector(".spinner."+ radioName).outerHTML = btnOuter;
       // if (data.success)
       //   {
-          if(makeExport){
-            tracksNum -= data.num_tracks_exported;
+          if(btnOuter.includes('do-export')){
+            if (fetchResult.num_tracks_exported > 0)
+                tracksNum -= fetchResult.num_tracks_exported;
             tracksEl.innerText = tracksNum.toString();
-            dateEl.innerText = data.export_date;
+            dateEl.innerText = fetchResult.export_date;
           }
           else{
-            tracksNum += data.num_tracks_added;
+            if (fetchResult.num_tracks_added > 0)
+                tracksNum += data.num_tracks_added;
             tracksEl.innerText = tracksNum.toString();
-            dateEl.innerText = data.import_date;
+            dateEl.innerText = fetchResult.import_date;
           }
 
         // }
         // if (!data.success)
         // make alarm
+      },
+      function (fetchResult){
+        console.log(fetchResult);
       });
+
 }
 
 function importAllRadios(elemID){
