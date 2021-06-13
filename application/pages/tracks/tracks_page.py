@@ -16,7 +16,7 @@ tracks = Blueprint('tracks', __name__, template_folder='templates', static_folde
 
 
 @tracks.route('/')
-@login_required
+# @login_required
 def tracks_list():
     tracks_data = Track.get_tracks(end_id=15)
     return render_template('tracks.html', tracks_data=tracks_data)

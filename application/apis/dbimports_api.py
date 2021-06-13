@@ -4,6 +4,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 from application.schema_models import dbimports_schemas
 from application.schema_models import validators
+from datetime import datetime, timedelta
 
 dbimports_api = Namespace('DBImports', description='Imports of new tracks')
 
@@ -25,9 +26,9 @@ class DBImports(Resource):
         """ Import tracks for radio (adds all yesterdays tracks) """
         data = request.json or {}
         account_id = data.get('account_id', '')
-        date = data.get('date')
+        date = data.get('date', datetime.now().date() - timedelta(days=1))
         radio_name = data.get('radio_name')
-        return radio.Radio.update_radio_tracks(radio_name=radio_name, day=date, account_id=account_id)
+        return radio.Radio.update_radio_tracks(radio_name=radio_name, start_date=date, account_id=account_id)
 
 
 @dbimports_api.route('/<import_date>')

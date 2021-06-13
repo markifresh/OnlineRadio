@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from flask import abort, request
-from flask_restx import reqparse, inputs
+from flask import request, session
+from flask_restx import reqparse, inputs, abort
 from config import date_format, import_date_format, date_hint
 from application.db_models.radio import Radio
 from config import users_settings
@@ -90,3 +90,7 @@ def validate_setting(setting):
     global_settings = [setting['option_name'] for setting in users_settings]
     if setting not in global_settings:
         abort(400, f'setting "{setting}" does not exists')
+
+def validate_user(account_id):
+    if account_id != session['ms_user']['id']:
+        abort(400, f'account id: "{account_id}" is not in current session: {session["ms_user"]["id"]}')

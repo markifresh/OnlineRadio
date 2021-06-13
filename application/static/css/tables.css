@@ -3,5 +3,11 @@ width: 40%;
 }
 
 .table-dark{
-background-color: #343a40ba;
+background-color: #28282d6e;
+margin-bottom: 75px;
+/* --bs-table-hover-bg: #503280; */
+--bs-table-hover-bg: #4141486e;
+--bs-table-bg: none;
+border-color: #6b767d38;
+color: #ffffffb0;
 }

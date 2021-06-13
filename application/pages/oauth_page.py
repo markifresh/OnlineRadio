@@ -93,6 +93,8 @@ def spotify_callback():
     session['logged_in'] = True
     session['ms_user'] = user_data['result']
     session['ms_service'] = 'spotify'
+    response_data['token'] = response_data['access_token']
+    del response_data['access_token']
     session['oauth'] = response_data
     session['oauth']['expiration_time'] = datetime.now() + timedelta(seconds=response_data['expires_in'])
 
@@ -129,7 +131,6 @@ def deezer_callback():
     token, expires_in = post_request.text.split('&')
     token = token.split('token=')[-1]
     expires_in = int(expires_in.split('expires=')[-1])
-
 
     dz = Deezer(token, expires_in)
     user_data = dz.get_user_info()

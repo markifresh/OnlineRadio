@@ -16,11 +16,11 @@ document.body.appendChild(audioObj);
 
  document.querySelector('.container').addEventListener('click', function(){
    if(event.target.classList.contains('do-import'))
-      makeImportExport(event.target, '/api/radios/update/');
+      makeImportExport(event.target, '/api/users/' + getCookie('user_id') + '/imports/');
 
 
    if(event.target.classList.contains('do-export'))
-      makeImportExport(event.target, '/api/radios/export/');
+      makeImportExport(event.target, '/api/users/' + getCookie('user_id') + '/exports/');
 
     if(event.target.classList.contains('play-radio'))
        playRadio(event.target.id);
@@ -83,7 +83,7 @@ function makeImportExport(elem, url){
 
   clonedElem.style.display = 'flex';
   elem.appendChild(clonedElem);
-  fetch(url)
+  fetch(url, {method: 'POST'})
     .then(response => response.json())
     .then(data => {
       for(let exportBtn of document.querySelectorAll('.do-export'))

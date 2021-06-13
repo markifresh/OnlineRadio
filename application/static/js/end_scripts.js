@@ -3,14 +3,20 @@
 
  document.querySelector('.container').addEventListener('click', function(){
    if(event.target.classList.contains('do-import'))
-      makeImportExport(event.target, '/api/imports/');
+        {
+            let radioName = event.target.id.split('-').pop();
+            makeImportExport(event.target, '/api/users/' + getCookie('user_id') + '/imports/' + radioName);
+        }
+
 
    if(event.target.classList.contains('do-custom-import'))
       makeImportExport(event.target, '/api/imports/per_date');
 
    if(event.target.classList.contains('do-export'))
-      makeImportExport(event.target, '/api/exports/');
-
+      {
+        let radioName = event.target.id.split('-').pop();
+        makeImportExport(event.target, '/api/users/' + getCookie('user_id') + '/exports/' + radioName);
+      }
     if(event.target.classList.contains('play-radio'))
        playRadio(event.target.id);
 
@@ -18,6 +24,22 @@
       pauseRadio();
  })
 
+disableUpdate();
+function disableUpdate(cardID = null){
+    let selector = '.card';
+    if (cardID)
+        selector = cardID;
+
+    let cards = document.querySelectorAll(selector);
+    for (let card of cards){
+        if (card.querySelector('.import-date')){
+            let cardImport = card.querySelector('.import-date').innerText.split('/')[0];
+            if (cardImport == new Date().getDate())
+                card.querySelector('.do-import').classList.add('disabled')
+            }
+        }
+
+    }
 
 // document.querySelectorAll('.card')
 // document.querySelectorAll('.card .do-import')
@@ -78,36 +100,53 @@ function makeImportExport(elem, url, funcData){
   let data = { 'account_id': getCookie('user_id'),
                'radio_name': radioName}
 
-  if(btnOuter.includes('do-export'))
+  if(btnOuter.includes('do-export') && funcData)
       data.import_date = funcData.import_data;
 
-  else if(btnOuter.includes('do-custom-import')){
+  else if(btnOuter.includes('do-custom-import') && funcData){
       data.start_date = funcData.start_date;
       data.end_date = funcData.end_date;
     }
 
-  commonFetch(url, 'POST', data, function (fetchResult)
+
+    setTimeout(function() {commonFetch(url, 'POST', data, function (fetchResult)
 
   {
-      for(let exportBtn of document.querySelectorAll('.do-export'))
-        exportBtn.disabled = false;
+      for(let exportBtn of document.querySelectorAll('.do-export')){
+        if (!exportBtn.classList.contains('btn'))
+            exportBtn.disabled = false;
+      }
+
 //      clonedElem.remove();
+
+      // Disable update button if radio was already updated
+      if(btnOuter.includes('do-import') && new Date(fetchResult.import_date).getDate() == new Date().getDate())
+          btnOuter = btnOuter.replace('do-import', 'do-import disabled');
+
+
+
       document.querySelector(".spinner."+ radioName).parentElement.style.marginTop = "0px";
       document.querySelector(".spinner."+ radioName).outerHTML = btnOuter;
       // if (data.success)
       //   {
           if(btnOuter.includes('do-export')){
             if (fetchResult.num_tracks_exported > 0)
+            {
                 tracksNum -= fetchResult.num_tracks_exported;
-            tracksEl.innerText = tracksNum.toString();
+                tracksEl.innerText = tracksNum.toString();
+            }
             dateEl.innerText = fetchResult.export_date;
           }
+
           else{
-            if (fetchResult.num_tracks_added > 0)
+            if (fetchResult.num_tracks_added > 0){
                 tracksNum += data.num_tracks_added;
-            tracksEl.innerText = tracksNum.toString();
+                tracksEl.innerText = tracksNum.toString();
+            }
             dateEl.innerText = fetchResult.import_date;
           }
+
+
 
         // }
         // if (!data.success)
@@ -115,12 +154,13 @@ function makeImportExport(elem, url, funcData){
       },
       function (fetchResult){
         console.log(fetchResult);
-      });
+      })}, 2000);
+
 
 }
 
 function importAllRadios(elemID){
-  let radios = document.querySelectorAll('.card .do-import');
+  let radios = document.querySelectorAll('.card .do-import:not(.disabled)');;
   for (let i = 0; i < radios.length; i++)
     radios[i].click();
 }

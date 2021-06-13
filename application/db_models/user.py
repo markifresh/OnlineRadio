@@ -123,6 +123,16 @@ class User(UserMixin, BaseExtended):
     def get_user_imports(cls, account_id):
         user = cls.get_user(account_id)
         res = user.imports.order_by(desc(tracks_import.TracksImport.id)).all()
+        for i in range(len(res)):
+            if res[i].related_to:
+                parent = tracks_import.TracksImport.query(tracks_import.TracksImport).\
+                    filter(tracks_import.TracksImport.id == res[i].related_to).first()
+                orig_import = res[i]
+                res[i] = parent
+                res[i].id = orig_import.id
+                res[i].requester = orig_import.requester
+                res[i].import_date = orig_import.import_date
+                res[i].exported = orig_import.exported
         user.session.close()
         return res
 
@@ -151,6 +161,16 @@ class User(UserMixin, BaseExtended):
     # def get_exported_tracks(self):
     #     return self.get_user_exported_tracks(self.account_id)
 
+    @classmethod
+    def get_user_unexported_imports(cls, account_id):
+        user = cls.get_user(account_id)
+        return user.imports.filter(tracks_import.TracksImport.exported == False).all()
+
+    @classmethod
+    def get_user_unexported_imports_by_radio(cls, account_id, radio_name):
+        user = cls.get_user(account_id)
+        return user.imports.filter(tracks_import.TracksImport.exported == False,
+                                   tracks_import.TracksImport.radio_name == radio_name).all()
 
     @classmethod
     def get_user_not_exported_tracks(cls, account_id):
@@ -199,23 +219,26 @@ class User(UserMixin, BaseExtended):
             radios[radio]['num_exported'] = 0
 
         imports = cls.get_user_imports(account_id)
-        for record in imports:
-            if radios.get(record.radio_name):
-                radios[record.radio_name]['num_imported'] += record.num_tracks_added
-                if not radios[record.radio_name].get('latest_import'):
-                    radios[record.radio_name]['latest_import'] = record.import_date
+        for one_import in imports:
+            radio_name = one_import.radio_name
+            if radios.get(radio_name):
+                radios[radio_name]['num_imported'] += one_import.num_tracks_added
+                if one_import.exported:
+                    radios[radio_name]['num_exported'] += one_import.num_tracks_added
+                if not radios[one_import.radio_name].get('latest_import'):
+                    radios[one_import.radio_name]['latest_import'] = one_import.import_date
 
         exports = cls.get_user_exports(account_id)
-        for record in exports:
-            if radios.get(record.radio_name):
-                radios[record.radio_name]['num_exported'] += record.num_tracks_added
-                if not radios[record.radio_name].get('latest_export'):
-                    radios[record.radio_name]['latest_export'] = record.export_date
+        for one_export in exports:
+            if radios.get(one_export.radio_name):
+                if not radios[one_export.radio_name].get('latest_export'):
+                    radios[one_export.radio_name]['latest_export'] = one_export.export_date
 
         for radio in radios:
             radios[radio]['num_to_export'] = radios[radio]['num_imported'] - radios[radio]['num_exported']
 
         return radios
+
 
     @classmethod
     def get_user_imports_for_radio(cls, account_id, radio_name):

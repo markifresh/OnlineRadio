@@ -21,10 +21,13 @@ class TracksImport(BaseExtended):
     num_tracks_requested = Column(Integer, default=0)
     radio_name = Column(String(20), ForeignKey('radios.name'), nullable=False)
     import_duration = Column(Float, default=0)
-    for_date = Column(DateTime)  # update_time in ms
+    start_date = Column(DateTime)  # update_time in ms
+    end_date = Column(DateTime)  # update_time in ms
     type = Column(String)  # full_day / specific_time
     requester = Column(String(20), ForeignKey('users.account_id'), nullable=False)
-    exported = Column(Boolean)
+    exported = Column(Boolean, default=False)
+    reviewed = Column(Boolean, default=False)
+    related_to = Column(Integer)
     # ? service_name = Column(String)
 
     def __repr__(self):
@@ -63,11 +66,25 @@ class TracksImport(BaseExtended):
         return cls.query(cls).filter(cls.import_date == import_date).one_or_none()
 
     @classmethod
-    def get_import_tracks(cls, import_date):
+    def get_import_tracks(cls, import_date, music_service=''):
+        res = []
         one_import = cls.get_import_by_date(import_date)
         track_db = track.Track
-        one_import_tracks = one_import.tracks.split(',')
-        return track_db.query(track_db).filter(track_db.id.in_(one_import_tracks)).all()
+        if one_import.tracks:
+            one_import_tracks = one_import.tracks.split(',')
+            res = track_db.query(track_db)\
+                                            .filter(track_db.id.in_(one_import_tracks))\
+                                            .order_by(track_db.rank.desc())\
+                                            .all()
+            track_db.session.close()
+            if music_service:
+                result = []
+                for one_track in res:
+                    if one_track.services.get(music_service):
+                        one_track.ms_id = one_track.services.get(music_service)
+                        result.append(one_track)
+                res = result
+        return res
 
     @classmethod
     def get_imports_per_date(cls, start_date, end_date, start_id='', end_id=''):

@@ -4,6 +4,11 @@
 {% include 'parts/login_as.html' %}
 {% include 'parts/navbar_menu_close.html' %}
 {% include 'parts/navbar_search_open.html' %}
+
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/tracks.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pagination.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
+
 <a id='importAll' class="btn btn-outline-secondary my-sm-0 mx-2" >Update All</a>
 <a id='exportAll' class="btn btn-outline-secondary my-sm-0 mx-2" >Export All</a>
 {% include 'parts/navbar_search_close.html' %}
@@ -11,6 +16,11 @@
 {% include 'parts/navbar_close.html' %}
 <!--<script type="text/javascript" src="{{ url_for('.static', filename='js/begin_scripts.js') }}"></script>-->
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/radios.css') }}">
+
+
+<div id="carouselExampleControls" class="carousel slide" data-ride="false" data-pause="true" style="position:unset">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
 <div class="container">
 
   {% for radio in radios %}
@@ -41,21 +51,21 @@
         </cite>
       </footer>
       <div>
-          <div style="display: inline-block">
-          <a type="button" class="btn btn-outline-secondary tracks" role="button"
-                  href="{{ '/tracks/' + radio }}">
-            Tracks
-          </a>
-            </div>
+{#          <div style="display: inline-block">                                       #}
+{#          <a type="button" class="btn btn-outline-secondary tracks" role="button"   #}
+{#                  href="{{ '/tracks/' + radio }}">                                  #}
+{#            Tracks                                                                  #}
+{#          </a>                                                                      #}
+{#            </div>                                                                  #}
 
           <a type="button" class="btn btn-outline-secondary imports" role="button"
-                  href="{{ '/imports/' + radio}}">
+                  href="#" onclick="showImports()">
             Imports
           </a>
 
 
           <a type="button" class="btn btn-outline-secondary exports" role="button"
-                  href="{{ '/exports/' + radio }}">
+                  href="#" onclick="showExports()">
             Exports
           </a>
 
@@ -65,13 +75,19 @@
           Update Radio Tracks List
         </button>
       </div>
-              <div>
-        <button type="button"id="export-{{ radio }}"  class="btn btn-outline-info do-export">
+      <div>
+        <button type="button" id="export-{{ radio }}"
+        {% if radios[radio]['num_to_export'] == 0 %}
+          disabled class="btn btn-outline-info do-export not-export">
+        {% else %}
+          class="btn btn-outline-info do-export">
+        {% endif %}
+
           Export Tracks to {{ session['ms_service'] | title  }}
         </button>
       </div>
       <div>
-        <button type="button"id="custom-import-{{ radio }}"  class="btn btn-outline-info do-custom-import" style="display:none">
+        <button type="button" id="custom-import-{{ radio }}"  class="btn btn-outline-info do-custom-import" style="display:none">
           Lookup for specific date
         </button>
       </div>
@@ -145,13 +161,63 @@
 
 {% endfor %}
 </div>
+    </div>
+
+{# SLIDE FOR EXPORTS / IMPORTS / TRACKS #}
+      <div class="carousel-item">
+        <div class="container" style="margin-bottom: 80px">
+          <table class="table table-hover table-dark" style="min-height: 800px">
+            <thead>
+              <tr id="tableHeaders" style="vertical-align: top">
+              </tr>
+            </thead>
+            <tbody>
+<!--            {% for track in tracks_data %}-->
+              <tr>
+                <td>artist</td>
+                <td>title</td>
+              </tr>
+                <tr style="display: none">
+                <td> op </td>
+                <td> pop </td>
+              </tr>
+<!--            {% endfor %}-->
+            </tbody>
+          </table>
+          {% include 'parts/pagination.html' %}
+        </div>
+      </div>
+
+  </div>
+  <a id="carouselNext" class="carousel-control-next" href="#!" role="button" onclick="showNextSlide()" style="display:none">
+    <span id="carouselNextText" class="sr-only" style="font-size: 22px" >
+        Radios >
+    </span>
+  </a>
+    </div>
+<!--<div>-->
+
+<!--</div>-->
+<!--<iframe id="service_player"-->
+<!--        src="https://open.spotify.com/embed/track/51r1ctSk1aaXmZDzFhHv2N"-->
+<!--        width="300"-->
+<!--        height="80"-->
+<!--        frameborder="0"-->
+<!--        allowtransparency="true"-->
+<!--        allow="encrypted-media"></iframe>-->
+
 {% include 'parts/loader.html' %}
 
 <!--<audio controls></audio>-->
 
+
+
 <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
-<!--<script type="text/javascript" src="{{ url_for('.static', filename='js/end_scripts.js') }}"></script>-->
+<script type="text/javascript" src="{{ url_for('.static', filename='js/embed_player.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/carousel_control.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+<!--<script src="https://sdk.scdn.co/spotify-player.js"></script>-->
 <!--<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>-->
 </body>
 </html>

@@ -30,14 +30,7 @@ class Track(BaseExtended):
     created_on = Column(DateTime(), default=datetime.now)
     services = Column(JSON)
     """
-    {'spotify': {
-                    'success': True, 
-                    'track': {  
-                                'title': '',
-                                'uri': ''
-                              }
-                }
-    }
+        {"deezer": 2542703, "spotify": "5O4erNlJ74PIF6kGol1ZrC"}
     """
 
 

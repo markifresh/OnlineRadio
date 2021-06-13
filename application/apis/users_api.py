@@ -1,9 +1,9 @@
-from application.db_models import user, tracks_import, tracks_export
+from application.db_models import user, tracks_import, tracks_export, radio
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask import request
 from application.schema_models import users_schemas, validators, dbimports_schemas, exports_schemas, tracks_schemas, radios_schemas
-from datetime import datetime
-from config import APIConfig
+from datetime import datetime, timedelta
+from config import APIConfig, read_date_time_format
 
 users_api = Namespace('Users', description='Methods of Users')
 envelope = APIConfig.api_envelope
@@ -51,10 +51,18 @@ class UserTracks(Resource):
 @users_api.param('account_id', 'Account ID of user')
 class UserImports(Resource):
 
-    @users_api.marshal_list_with(dbimports_schemas.di_brief)
+    @users_api.marshal_list_with(dbimports_schemas.di_full)
     def get(self, account_id):
         """ User imports by ID """
         return user.User.get_user_imports(account_id)
+
+    @users_api.marshal_with(dbimports_schemas.post_result)
+    def post(self, account_id):
+        """ Import tracks for radio (adds all yesterdays tracks) """
+        data = request.json or {}
+        date = data.get('date', datetime.now().date() - timedelta(days=1))
+        radio_name = data.get('radio_name')
+        return {}
 
 @users_api.route('/<account_id>/imports/<radio_name>')
 @users_api.param('account_id', 'Account ID of user')
@@ -65,6 +73,47 @@ class UserRadioImports(Resource):
     def get(self, account_id, radio_name):
         """ All imports for radio for user """
         return user.User.get_user_imports_for_radio(account_id, radio_name)
+
+    @users_api.marshal_list_with(dbimports_schemas.di_brief)
+    def post(self, account_id, radio_name):
+        """ All imports for radio for user """
+        validators.validate_radio_name(radio_name)
+        date = datetime.now().date() - timedelta(days=1)
+        return radio.Radio.update_radio_tracks(radio_name=radio_name, start_date=date, account_id=account_id)
+
+@users_api.route('/<account_id>/imports/unexported')
+@users_api.param('account_id', 'Account ID of user')
+class UserImportsUnexported(Resource):
+
+    @users_api.marshal_list_with(dbimports_schemas.di_brief)
+    def get(self, account_id):
+        """ User unexported imports by ID """
+        return user.User.get_user_unexported_imports(account_id)
+
+@users_api.route('/<account_id>/imports/unexported/<radio_name>')
+@users_api.param('account_id', 'Account ID of user')
+@users_api.param('radio_name', 'Name of radio')
+class UserImportsUnexportedForRadio(Resource):
+
+    @users_api.marshal_list_with(dbimports_schemas.di_brief)
+    def get(self, account_id, radio_name):
+        """ User unexported imports for radios by ID """
+
+        validators.validate_radio_name(radio_name)
+        return user.User.get_user_unexported_imports_by_radio(account_id, radio_name)
+
+@users_api.route('/<account_id>/imports/<import_date>/tracks')
+@users_api.param('account_id', 'Account ID of user')
+@users_api.param('import_date', 'Date of import')
+class UserImportTracks(Resource):
+
+    @users_api.marshal_list_with(tracks_schemas.track_table)
+    def get(self, account_id, import_date):
+        """ All tracks of imports of radio of user """
+        import_date = validators.validate_date(import_date)
+        validators.validate_user(account_id)
+        service_name = user.User.get_user(account_id).service_name
+        return tracks_import.TracksImport.get_import_tracks(import_date, service_name)
 
 @users_api.route('/<account_id>/imports/<radio_name>/tracks')
 @users_api.param('account_id', 'Account ID of user')
@@ -85,6 +134,11 @@ class UserExports(Resource):
         """ User exports by ID """
         return user.User.get_user_exports(account_id)
 
+    def post(self, account_id):
+        """ User export unexported imports to Music Service """
+        imports_ids = user.User.get_user_unexported_imports(account_id)
+        imports_ids = [res['id'] for res in imports_ids]
+        return {'result': tracks_export.TracksExport.export_imports(imports_ids)}
 
 @users_api.route('/<account_id>/exports/<radio_name>')
 @users_api.param('account_id', 'Account ID of user')
@@ -95,6 +149,27 @@ class UserRadioExports(Resource):
     def get(self, account_id, radio_name):
         """ All exports for radio for user """
         return user.User.get_user_exports_for_radio(account_id, radio_name)
+
+    def post(self, account_id, radio_name):
+        """ User export unexported imports to Music Service for Radio """
+
+        imports_ids = user.User.get_user_unexported_imports_by_radio(account_id, radio_name)
+        imports_ids = [res.id for res in imports_ids]
+        results = tracks_export.TracksExport.export_imports(imports_ids)
+        if not results['success']:
+            return {'success': False, 'result': str(results)}
+
+        num_tracks_requested = 0
+        num_tracks_added = 0
+        for result in results['result']:
+            if result['success']:
+                num_tracks_requested += result['export_data']['num_tracks_requested']
+                num_tracks_added += result['export_data']['num_tracks_added']
+
+        return {'success': results['success'],
+                'num_tracks_requested': num_tracks_requested,
+                'num_tracks_added': num_tracks_added,
+                'date': datetime.now().strftime(read_date_time_format)}
 
 @users_api.route('/<account_id>/exports/<radio_name>/tracks')
 @users_api.param('account_id', 'Account ID of user')

@@ -20,7 +20,16 @@ track_full = tracks_schemas.model('track_full', {
     'reviewed': fields.String(required=False),
     'in_spotify': fields.String(required=False),
     'genre': fields.String(required=False),
-    'created_on': fields.DateTime(required=False)
+    'created_on': fields.DateTime(required=False),
+    'ms_id': fields.String(required=False),
+})
+
+track_table = tracks_schemas.model('track_table', {
+    'id': fields.Integer(required=True),
+    'artist': fields.String(required=True),
+    'title': fields.String(required=True),
+    'rank': fields.Integer(required=True),
+    'ms_id': fields.String(required=False),
 })
 
 track_update = track_full

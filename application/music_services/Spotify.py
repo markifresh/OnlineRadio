@@ -7,6 +7,7 @@ from base64 import b64encode
 from datetime import datetime, timedelta
 from time import sleep
 from concurrent.futures import ThreadPoolExecutor
+from config import SpotifyConfig
 
 class Spotify(MSAbstract):
     api_url = SpotifyConfig.SPOTIFY_API_URL
@@ -68,31 +69,21 @@ class Spotify(MSAbstract):
         else:
             res = get(url, headers=self.oath_headers)
 
-        success = res.status_code == 200
-        if success:
-            result = json_loads(res.text)
-
-        return {'success': success, 'result': result, 'headers': dict(res.headers)}
+        return {'success': res.status_code == 200, 'result': json_loads(res.text), 'headers': dict(res.headers)}
 
     def post_requests(self, url, data):
         self.check_token()
         result = {}
         res = post(url, headers=self.oath_headers, json=data)
-        success = res.status_code in (200, 201)
-        if success:
-            result = json_loads(res.text)
 
-        return {'success': success, 'result': result, 'headers': dict(res.headers)}
+        return {'success': res.status_code in (200, 201), 'result': json_loads(res.text), 'headers': dict(res.headers)}
 
     def put_requests(self, url, data):
         self.check_token()
         result = {}
         res = put(url, headers=self.oath_headers, json=data)
-        success = res.status_code in (200, 201)
-        if success:
-            result = json_loads(res.text)
 
-        return {'success': success, 'result': result, 'headers': dict(res.headers)}
+        return {'success': res.status_code in (200, 201), 'result': json_loads(res.text), 'headers': dict(res.headers)}
 
     # def find_track(self, track_name):
     #     artist, title = track_name.split('-')
@@ -226,25 +217,27 @@ class Spotify(MSAbstract):
 
         params = {'offset': offset,
                   'limit': limit,
-                  'fields': 'items(added_at,track.artists.name,track.name),items.track.album(name,release_date)'}
+                  'fields': 'items(added_at,track.id,track.artists.name,track.name),items.track.album(name,release_date)'}
 
         res = self.get_requests(url, params)
         if not res['success']:
             return res
+        tracks_chunk = res['result'].get('items', [])
+        raw_tracks += tracks_chunk
 
-        raw_tracks += res['result'].get('items', [])
-
-        while len(res) == limit:
+        while len(tracks_chunk) == limit:
             params['offset'] += limit
             res = self.get_requests(url, params)
+            tracks_chunk = res['result'].get('items', [])
             if not res['success']:
                 return res
 
-            raw_tracks += res['result'].get('items', [])
+            raw_tracks += tracks_chunk
 
         if raw_tracks:
             tracks = [
                         {'added_at': track['added_at'],
+                         'id': track['track']['id'],
                          'artist': track['track']['artists'][0]['name'],
                          'title': track['track']['name'],
                          'album': track['track']['album']['name'],
@@ -257,7 +250,8 @@ class Spotify(MSAbstract):
             artist, title = track_name['artist'], track_name['title']
 
         elif isinstance(track_name, str) and '-' in track_name:
-            artist, title = track_name.split('-')
+            splited = track_name.split('-')
+            artist, title = splited[0], ' - '.join(splited[1:])
 
         else:
             return {'success': False, 'error': True, 'result': 'Incorrect track name format', 'common_name': track_name}
@@ -302,17 +296,34 @@ class Spotify(MSAbstract):
 
         return res
 
-    def add_uris_to_playlist(self, playlist, tracks_uris):
+    def add_tracks_by_ids_to_playlist(self, playlist, tracks_ids):
+        result = []
         playlist = playlist if isinstance(playlist, str) else playlist.get('id', '')
-        tracks_uris = tracks_uris if isinstance(tracks_uris, list) else [tracks_uris]
-        res = self.post_requests(f'{self.api_url}playlists/{playlist}/tracks', {"uris": tracks_uris})
+        tracks_ids = tracks_ids if isinstance(tracks_ids, list) else [tracks_ids]
 
-        if not res['success'] and res['headers'].get('retry-after'):
-            while res['headers'].get('retry-after'):
-                sleep(int(res['headers'].get('retry-after')))
-                res = self.post_requests(f'{self.api_url}playlists/{playlist}/tracks', {"uris": tracks_uris})
+        already_exists_tracks = self.get_playlist_tracks(playlist)
+        if not already_exists_tracks['success']:
+            return {'success': False, 'result': 'Failed to get playlist tracks'}
 
-        return res
+        already_exists_tracks = [str(playlist_track['id']) for playlist_track in already_exists_tracks['result']]
+        ids_to_add = [f'spotify:track:{track_id}' for track_id in tracks_ids if track_id not in already_exists_tracks]
+        lists_of_ids = []
+        if not ids_to_add:
+            return {'success': True, 'result': 'All tracks already in playlist'}
+
+        while ids_to_add:
+            lists_of_ids.append(ids_to_add[:SpotifyConfig.TRACKS_ADD_LIMIT])
+            ids_to_add = ids_to_add[SpotifyConfig.TRACKS_ADD_LIMIT:]
+
+        for ids_list in lists_of_ids:
+            res = self.post_requests(f'{self.api_url}playlists/{playlist}/tracks', {"uris": ids_list})
+            res['track_ids'] = ids_to_add
+            res['playlist_id'] = playlist
+            result.append(res)
+
+        success = [res['success'] for res in result]
+        return {'success': False not in success, 'result': result}
+
 
     def add_track_to_playlist(self, playlist_name, track):
         return self.add_tracks_to_playlist(playlist_name, [track])

@@ -1,8 +1,12 @@
 from application.db_models import tracks_import
 from application.db_models import tracks_export
 from application.db_models import track as track_db
+from application.db_models import user
 from application.workers.ExtraFunc import get_date_range_list
 from application.workers import RadioWorker
+from application import convert_to_date
+from application.CustomExceptions import BasicCustomException
+from application.workers import ServiceWorker
 
 from config import RadioConfig, APIConfig
 from json import loads
@@ -12,6 +16,7 @@ from application.db_models.extenders_for_db_models import BaseExtended
 
 from sqlalchemy import Column, Integer, String, Sequence, DateTime, JSON
 from sqlalchemy.orm import relationship
+from flask import session
 from traceback import format_exc as traceback_format_exc
 from datetime import datetime, timedelta, date
 from config import import_datetime_format
@@ -459,7 +464,10 @@ class  Radio(BaseExtended):
         return results
 
     @classmethod
-    def import_tracks_to_db(cls, radio_name, day, start_time, radio_tracks, account_id=''):
+    def import_tracks_to_db(cls, radio_name, start_time, start_date, end_date, radio_tracks, account_id=''):
+        # user_ms = None
+        # if account_id:
+        #     user_ms = User.get_user(account_id)['service_name']
         updated_tracks = []
         added_ids = []
         failed_tracks = []
@@ -467,38 +475,46 @@ class  Radio(BaseExtended):
         db_tracks = [track[0] for track in cls.session.query(track_db.Track.common_name).all()]
         import_date = datetime.now()
         # import_date = import_time.strftime('%d/%m/%Y %H:%M:%S.%f')
-        if day:
-            cls.commit_data(tracks_import.TracksImport(import_date=import_date,
-                                                       radio_name=radio_name,
-                                                       for_date=day,
-                                                       requester=account_id))
-        else:
-            cls.commit_data(tracks_import.TracksImport(import_date=import_date,
-                                                       radio_name=radio_name,
-                                                       requester=account_id))
+        cls.commit_data(tracks_import.TracksImport(import_date=import_date,
+                                                   radio_name=radio_name,
+                                                   start_date=start_date,
+                                                   end_date=end_date,
+                                                   requester=account_id))
+        radio_tracks_orig = radio_tracks
+
+        for track in radio_tracks:
+            if track["common_name"] in db_tracks:
+                already_added_tracks.append(track)
+                radio_tracks_orig.remove(track)
+
+        radio_tracks = radio_tracks_orig
+        music_services = ServiceWorker.get_all_services()['result']
         for track in radio_tracks:
             # db_session = self.create_db_session()
             # new_track = db_session.query(TrackModel).filter_by(common_name=track["common_name"]).scalar() is None
             # db_session.close()
             # if new_track:
-            if track["common_name"] not in db_tracks:
-                res = cls.commit_data(track_db.Track(
-                    common_name=track['common_name'],
-                    radio_name=radio_name,
-                    play_date=track['play_date'],
-                    title=track['title'],
-                    artist=track['artist'],
-                    album_name=track.get('album_name', ''),
-                    genre=track['genre']
-                ))
-                if res['success']:
-                    updated_tracks.append(track["common_name"])
-                    added_ids.append(res['id'])
-                else:
-                    track['error'] = res['result']
-                    failed_tracks.append(track)
+            track_search = ServiceWorker.find_track(f'{track["artist"]} - {track["title"]}', music_services)
+            if not track_search['services']:
+                track_search = ServiceWorker.find_track(f'{track["title"]} - {track["artist"]}', music_services)
+            res = cls.commit_data(track_db.Track(
+                common_name=track['common_name'],
+                radio_name=radio_name,
+                play_date=track['play_date'],
+                title=track['title'],
+                artist=track['artist'],
+                album_name=track.get('album_name', ''),
+                genre=track['genre'],
+                rank=track_search['rank'],
+                services=track_search['services']
+            ))
+            if res['success']:
+                updated_tracks.append(track["common_name"])
+                added_ids.append(res['id'])
             else:
-                already_added_tracks.append(track)
+                track['error'] = res['result']
+                failed_tracks.append(track)
+
 
         end = datetime.now()
         added_ids = str(added_ids)[1:-1]
@@ -523,34 +539,98 @@ class  Radio(BaseExtended):
                 'tracks': radio_tracks,
                 'update_time_sec': import_duration,
                 'import_date': import_date.strftime(import_datetime_format),
-                'for_date': str(day),
+                'start_date': str(start_date),
+                'end_date': str(end_date),
                 'res': res,
                 'requester': account_id}
 
     @classmethod
-    def update_radio_tracks(cls, radio_name, day="", account_id=""):
-        if not day:
-            day = datetime.today() - timedelta(days=1)
-        start = datetime.now()
-        radio_tracks = RadioWorker.create_radio(radio_name).get_radio_tracks(day)
+    def check_previous_imports(cls, radio_name, start_date, end_date, account_id=""):
+
+        start_time = datetime.now()
+        ti = tracks_import.TracksImport
+        if ti.query(ti).filter(ti.start_date == start_date,
+                               ti.end_date == end_date,
+                               ti.requester == account_id,
+                               ti.radio_name == radio_name).count() != 0:
+            ti.session.close()
+            raise BasicCustomException('tracks for this date interval was already requested')
+
+        res = ti.query(ti).filter(ti.related_to == None,
+                                  ti.radio_name == radio_name,
+                                  ti.start_date.between(start_date, end_date),
+                                  ti.end_date.between(start_date, end_date)).first()
+        ti.session.close()
+        if res:
+            if res.start_date == start_date and res.end_date == end_date:
+                data = {
+                    'import_date': start_time,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'radio_name': radio_name,
+                    'related_to': res.id,
+                    'requester': account_id
+                }
+
+                return ti.commit_data(data)
+
+            else:
+                tracks_string = ''
+                tracks = track_db.Track.query(track_db.Track.id).filter(
+                    track_db.Track.play_date.between(start_date, end_date))
+                for track in tracks:
+                    tracks_string += str(track[0]) + ','
+
+                data = {
+                    'import_date': start_time,
+                    'radio_name': radio_name,
+                    'start_date': start_date,
+                    'end_date': end_date,
+                    'requester': account_id,
+                    'num_tracks_added': len(tracks),
+                    'num_tracks_requested': len(tracks),
+                    'import_duration': round((datetime.now() - start_time).total_seconds(), 2)
+                }
+                return ti.commit_data(data)
+
+        return None
+
+    @classmethod
+    def update_radio_tracks(cls, radio_name, start_date, account_id=""):
+        start_time = datetime.now()
+        start_date = convert_to_date(start_date)
+        end_date = start_date + timedelta(days=1)
+
+        previous_imports = cls.check_previous_imports(radio_name, start_date, end_date, account_id)
+        if previous_imports:
+            return previous_imports
+
+
+        radio_tracks = RadioWorker.create_radio(radio_name).get_radio_tracks(start_date)
 
         if not radio_tracks['success']:
             return radio_tracks
 
-        return cls.import_tracks_to_db(radio_name, day, start, radio_tracks['result'], account_id)
+        return cls.import_tracks_to_db(radio_name, start_time, start_date, end_date, radio_tracks['result'], account_id)
 
 
 
     @classmethod
-    def update_radio_tracks_per_range(cls, radio_name, start_date=None, end_date=None, account_id=""):
+    def update_radio_tracks_per_range(cls, radio_name, start_date, end_date="", account_id=""):
         start_time = datetime.now()
         tracks = []
+
+        previous_imports = cls.check_previous_imports(radio_name, start_date, end_date, account_id)
+        if previous_imports:
+            return previous_imports
+
         tracks_req = RadioWorker.create_radio(radio_name).get_radio_tracks_per_range(start_date, end_date)
 
         if not tracks_req['success']:
             return {'success': False, 'result': tracks_req}
 
-        return cls.import_tracks_to_db(radio_name=radio_name, day=None, start_time=start_time,
+        return cls.import_tracks_to_db(radio_name=radio_name, start_time=start_time,
+                                       start_date=start_date, end_date=end_date,
                                        radio_tracks=tracks_req['result'], account_id=account_id)
 
 
@@ -643,3 +723,4 @@ class  Radio(BaseExtended):
         ress['num_tracks_exported'] = num_tracks_added + len(ress['failed_to_find'])
         ress['num_tracks_requested'] = num_tracks_requested
         return ress
+

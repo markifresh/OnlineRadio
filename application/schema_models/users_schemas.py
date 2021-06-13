@@ -1,4 +1,5 @@
 from flask_restx import Namespace, fields
+from application.schema_models.validators import current_year, date_regx_format
 
 users_schemas = Namespace('users_schemas', description='Input Output schemas for User')
 
@@ -35,3 +36,8 @@ user_radios_update = users_schemas.model('user_radios_update', {
     'radios': fields.List(fields.String, description='user id')
 })
 
+make_import = users_schemas.model('make_import', {
+    'radio_name': fields.String(required=True, max_length=20),
+    'account_id': fields.String,
+    'date': fields.String(pattern=date_regx_format, description=f'use format: dd-mm-{current_year}', max_length=10)
+})

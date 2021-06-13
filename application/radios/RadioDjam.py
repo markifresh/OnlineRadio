@@ -46,7 +46,7 @@ class Djam(RadioAbstract):
             elements = BeautifulSoup(res.text, 'html.parser').find_all('li')
             for li in elements:
                 track_str = li.text
-                if 'Cinema' not in track_str and 'Ledjam Radio' not in track_str:
+                if 'Cinema' not in track_str and 'Ledjam Radio' not in track_str and 'Television' not in track_str:
                     splited = track_str.split(' : ')
                     hours, minutes = splited[0].split('h')
                     track_play_date = datetime(day=one_date.day,

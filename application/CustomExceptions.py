@@ -1,5 +1,4 @@
-from flask_restx import abort
-from flask import current_app
+from flask import abort, current_app
 
 
 class BasicCustomException(Exception):

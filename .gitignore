@@ -5,5 +5,8 @@
 *.log
 .env
 chromedriver.exe
-
+application/*.pem
 !requirements.txt
+
+*.html
+test*

@@ -7,7 +7,7 @@ max_radio_name_length = 20
 di_schemas = Namespace('di_schemas', description='Input Output schemas for DBImports')
 
 di_brief = di_schemas.model('di_brief', {
-    'import_date': fields.String,
+    'import_date': fields.DateTime,
     'radio_name': fields.String,
     'num_tracks_added': fields.Integer
 })
@@ -18,7 +18,9 @@ di_full = di_schemas.model('di_full', {
     'num_tracks_requested': fields.Integer(required=True),
     'num_tracks_added': fields.Integer(required=True),
     'radio_name': fields.String(required=True),
-    'import_duration': fields.Float(required=True)
+    'import_duration': fields.Float(required=True),
+    'exported': fields.Boolean,
+    'reviewed': fields.Boolean
 })
 
 di_update = di_schemas.model('di_update', {

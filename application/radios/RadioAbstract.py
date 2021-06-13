@@ -3,7 +3,7 @@ from application.workers.ExtraFunc import get_date_range_list
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from config import import_datetime_format, import_date_format
 from datetime import datetime, timedelta, date
-from application import convert_to_date
+
 
 
 class RadioAbstract(ABC):
@@ -21,7 +21,6 @@ class RadioAbstract(ABC):
         self.radio_id = radio_id
 
     def get_radio_tracks(self, play_date):
-        play_date = convert_to_date(play_date)
         day_before = play_date + timedelta(days=1)
         return self.get_radio_tracks_per_range(day_before, play_date)
 

@@ -72,6 +72,10 @@ class MSAbstract(ABC):
     def get_playlist_tracks(self, playlist_id):
         pass
 
+    @abstractmethod
+    def add_tracks_by_ids_to_playlist(self, playlist, tracks_ids):
+        pass
+
     #todo: check if track already in playlists
     @abstractmethod
     def add_track_to_playlist(self, playlist_id, track_id):

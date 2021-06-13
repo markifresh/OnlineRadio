@@ -20,6 +20,7 @@ mutagen = "*"
 flask-login = "*"
 flask-wtf = "*"
 email-validator = "*"
+pyopenssl = "*"
 
 [requires]
 python_version = "3.7"

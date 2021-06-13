@@ -1,3 +1,4 @@
+import config
 from application.music_services.MSAbstract import MSAbstract
 from config import DeezerConfig
 # from application.pages.oauth_page import deezer_redirect
@@ -47,7 +48,8 @@ class Deezer(MSAbstract):
     def find_track(self, common_name):
         common_name = common_name.lower()
         final_result = {}
-        artist, track = common_name.split('-')
+        splited = common_name.split('-')
+        artist, track = splited[0], ' - '.join(splited[1:])
         params = {
             #'q': common_name,
             'q': f'artist:"{artist}" track:"{track}"',
@@ -154,19 +156,53 @@ class Deezer(MSAbstract):
         return self.post_requests(url=f'/user/me/playlists',
                                   params={'title': name})
 
+    def add_tracks_by_ids_to_playlist(self, playlist, tracks_ids):
+        result = []
+        playlist_id = playlist['id'] if isinstance(playlist, dict) else playlist
+        tracks_ids = tracks_ids if isinstance(tracks_ids, list) else [tracks_ids]
+        ids_to_add = []
+
+        for track in tracks_ids:
+            if isinstance(track, dict):
+                ids_to_add.append(str(track['id']))
+
+            elif isinstance(track, int) or track.isdecimal():
+                ids_to_add.append(str(track))
+
+            elif isinstance(track, str):
+                ids_to_add.append(track)
+
+        if not ids_to_add:
+            return []
+
+        # Select only tracks which are not in playlist already
+        already_exists_tracks = self.get_playlist_tracks(playlist_id)
+        already_exists_tracks = [str(playlist_track['id']) for playlist_track in already_exists_tracks['result']]
+        ids_to_add = [track_id for track_id in ids_to_add if track_id not in already_exists_tracks]
+
+        # split all tracks IDs by chunks of size equal to limit of Music Service
+        # and format ids to string of format 'id1,id2,id3'
+        lists_of_ids = []
+        if not ids_to_add:
+            return {'success': True, 'result': 'All tracks already in playlist'}
+
+        while ids_to_add:
+            lists_of_ids.append(','.join(ids_to_add[:config.DeezerConfig.TRACKS_ADD_LIMIT]))
+            ids_to_add = ids_to_add[config.DeezerConfig.TRACKS_ADD_LIMIT:]
+
+        # send post request for each chunk
+        for ids_list in lists_of_ids:
+            res = self.post_requests(url=f'/playlist/{playlist_id}/tracks', params={'songs': ids_list})
+            res['track_ids'] = ids_list
+            res['playlist_id'] = playlist_id
+            result.append(res)
+
+        success = [res['success'] for res in result]
+        return {'success': False not in success, 'result': result}
+
+
     def add_track_to_playlist(self, playlist_id, track_id):
-        track_id_original = track_id
-        track_id = track_id.get('id', '') if isinstance(track_id, dict) else track_id
-        if not track_id:
-            return {'success': False, 'result': f'id not found in: {track_id_original}'}
-
-        playlist_id_original = playlist_id
-        playlist_id = playlist_id.get('id', '') if isinstance(playlist_id, dict) else playlist_id
-        if not playlist_id:
-            return {'success': False, 'result': f'id not found in: {playlist_id_original}'}
-
-        return self.post_requests(url=f'/playlist/{playlist_id}/tracks',
-                                  params={'songs': track_id})
+        pass
 
     def add_tracks_to_playlist(self, playlist_id, tracks_ids):
         if not isinstance(tracks_ids, list):
