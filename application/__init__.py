@@ -25,6 +25,7 @@ def create_app(confConfClass):
               version='1.0',
               title='OnlineRadio API',
               description='API for online Radio',
+              prefix='/api',
               doc='/api/docs/'
               )
     #
@@ -57,14 +58,14 @@ def create_app(confConfClass):
 
 
         from .pages.welcome import welcome_page
-        app.register_blueprint(welcome_page.welcome, url_prefix='/welcome')
+        app.register_blueprint(welcome_page.welcome, url_prefix='/')
 
         from .pages.user_settings import user_settings_page
         app.register_blueprint(user_settings_page.user_settings, url_prefix='/settings')
 
         from application.pages.auth.auth_page import auth_page
-        app.register_blueprint(auth_page, url_prefix='/')
-        
+        app.register_blueprint(auth_page, url_prefix='/auth')
+
         from .pages.radios import radios_page
         app.register_blueprint(radios_page.radios, url_prefix='/radios')
 
@@ -110,29 +111,30 @@ def create_app(confConfClass):
         from application.schema_models.tracks_schemas import tracks_schemas
         api.add_namespace(tracks_schemas)
 
+        ### APIs INIT ###
         from application.apis.users_api import users_api
-        api.add_namespace(users_api, '/api/users')
+        api.add_namespace(users_api, '/users')
 
         from application.apis.radios_api import radios_api
-        api.add_namespace(radios_api, '/api/radios')
+        api.add_namespace(radios_api, '/radios')
 
         from application.apis.tracks_api import tracks_api
-        api.add_namespace(tracks_api, '/api/tracks')
+        api.add_namespace(tracks_api, '/tracks')
 
         from application.apis.dbimports_api import dbimports_api
-        api.add_namespace(dbimports_api, '/api/imports')
+        api.add_namespace(dbimports_api, '/imports')
 
         from application.apis.spotifyexports_api import spotifyexports_api
-        api.add_namespace(spotifyexports_api, '/api/exports')
+        api.add_namespace(spotifyexports_api, '/exports')
 
         from application.apis.radio_tracks_api import radio_tracks_api
-        api.add_namespace(radio_tracks_api, '/api/radio_tracks')
+        api.add_namespace(radio_tracks_api, '/radio_tracks')
 
         from application.apis.radio_imports import radio_imports_api
-        api.add_namespace(radio_imports_api, '/api/radio_imports')
+        api.add_namespace(radio_imports_api, '/radio_imports')
 
         from application.apis.radio_exports import radio_exports_api
-        api.add_namespace(radio_exports_api, '/api/radio_exports')
+        api.add_namespace(radio_exports_api, '/radio_exports')
 
         # from application.apis import Test2
         # app.register_blueprint(Test2.radios_api2)

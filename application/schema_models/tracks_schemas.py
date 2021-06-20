@@ -30,6 +30,7 @@ track_table = tracks_schemas.model('track_table', {
     'title': fields.String(required=True),
     'rank': fields.Integer(required=True),
     'ms_id': fields.String(required=False),
+    'play_date': fields.DateTime
 })
 
 track_update = track_full

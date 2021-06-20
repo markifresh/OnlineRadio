@@ -9,11 +9,13 @@ else
     .then(response => response.json())
     .then(data => {
       objectNum = data.number;
-      setTotalPages();
+      setTotalPages(objectNum);
     })
 
+initListeners('/api/users/' + getCookie('user_id') + '/imports');
 
-function setTotalPages(){
+function setTotalPages(objectNum){
+// let objNum = Object.keys(data).length;
 let pageLimit = parseInt(document.querySelector('#limitSelect .active a').innerText);
 let pageNumbers = Math.round(objectNum / pageLimit);
 let pages = document.querySelectorAll('#pageSelect .page');
@@ -73,7 +75,6 @@ function pagesPrevRange(){
       if(pages[i].style.display == 'none')
         pages[i].style.display = '';
       pages[i].innerText = Number(pages[i].innerText) - 3;
-
     }
 
     curPage.classList.remove('active');
@@ -140,25 +141,32 @@ function nextKey(){
 }
 
 
-function getData(){
-  let url = '';
+function getData(url=''){
+  if(!url){
+      let url = '';
 
-  if(artistsPage)
-    url = '/api/tracks' + location.pathname.slice(0, -1);
-  else
-    url = '/api' + location.pathname.slice(0, -1);
+      if(artistsPage)
+        url = '/api/tracks' + location.pathname.slice(0, -1);
+      else
+        url = '/api' + location.pathname.slice(0, -1);
 
-  let curPage = Number(document.querySelector('#pageSelect .active').innerText);
-  let perPage = Number(document.querySelector('#limitSelect .active').innerText);
-  let from = (curPage - 1) * perPage;
-  url += '?limit=' + perPage + '&from_id=' + from
+        let curPage = Number(document.querySelector('#pageSelect .active').innerText);
+        let perPage = Number(document.querySelector('#limitSelect .active').innerText);
+        let from = (curPage - 1) * perPage;
+        url += '?limit=' + perPage + '&from_id=' + from
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            // console.log(data);
+            setData(data);
+          })
+    }
+  else{
+    commonFetch(url, 'get', func=setData);
+  }
   // console.log(url);
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      // console.log(data);
-      setData(data);
-    })
+
 }
 
 function setData(data){
@@ -170,15 +178,15 @@ function setData(data){
           // console.log(data[i]);
           let newTr = document.createElement('tr');
           let innerTds = '';
-
-          if(artistsPage)
-            innerTds = '<td>' + data[i] + '</td>';
-
-          else
-          {
+          //
+          // if(artistsPage)
+          //   innerTds = '<td>' + data[i] + '</td>';
+          //
+          // else
+          // {
             for (let objKey of Object.values(data[i]))
             innerTds += '<td>' + objKey + '</td>';
-          }
+          // }
 
           newTr.innerHTML = innerTds;
           // console.log(newTr.innerHTML);
@@ -188,7 +196,7 @@ function setData(data){
   table.appendChild(newTbody);
 }
 
-
+function initListeners(url=''){
 document.getElementById('pageSelect').addEventListener('click', function(){
 let curElem = event.target;
 let curPar = event.target.parentElement;
@@ -197,15 +205,15 @@ if(curElem.classList.contains('page') && !curPar.classList.contains('active')){
     curPar.classList.add('active');
     if(document.querySelector('.borderPage').parentElement.classList.contains('active'))
       pagesNextRange();
-    getData();
+    getData(url);
   }
 if(curPar.classList.contains('prevPage'))
   {backKey();
-  getData();}
+  getData(url);}
 
 if(curPar.classList.contains('nextPage'))
   {nextKey();
-    getData();}
+    getData(url);}
 
 nextPrevBtn();
 
@@ -219,11 +227,9 @@ document.getElementById('limitSelect').addEventListener('click', function(){
     if(!curPar.classList.contains('active')){
       document.querySelector('#limitSelect .active').classList.remove('active');
       curPar.classList.add('active');
-      getData();
+      getData(url);
       setTotalPages();
     }
   }
-
-
-
 })
+}

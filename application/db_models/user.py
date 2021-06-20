@@ -9,7 +9,7 @@ from application.db_models import tracks_export
 from application.db_models import radio
 from application.db_models import track
 from application.CustomExceptions import UniqueDBObjectError, BasicCustomException
-from config import users_settings
+from config import users_settings, date_format
 
 class User(UserMixin, BaseExtended):
     unique_search_field = 'account_id'

@@ -12,3 +12,27 @@ background-color:#1d2122e6 !important;
 padding-top: 3px;
 padding-bottom: 3px;
 }
+
+.card {
+    min-height: 400px;
+}
+
+.carousel-item .container{
+    min-height: 800px;
+}
+
+table tbody{
+  vertical-align: middle !important;
+}
+
+tbody tr{
+  height: 85px;
+}
+
+/* iframe{
+  margin-right: -500px;
+} */
+
+tr button {
+  margin-right: 5px;
+}

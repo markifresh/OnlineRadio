@@ -3,14 +3,14 @@ function keepPlaying(){
   if(radioName && !window.location.pathname.includes('/radios/')){
     var audioObj = document.createElement('audio');
     audioObj.autoplay = true;
-    // audioObj.controls = true;
+    // audioObj.controls = false;
     audioObj.src = sessionStorage.getItem(radioName);
     audioObj.play();}
 }
 
 keepPlaying();
 var audioObj = document.createElement('audio');
-audioObj.controls = true;
+// audioObj.controls = false;
 audioObj.autoplay = true;
 document.body.appendChild(audioObj);
 
@@ -172,7 +172,7 @@ function pauseRadio(){
   let tmp = audioObj;
   audioObj = document.createElement('audio');
   tmp.remove();
-  audioObj.controls = true;
+  // audioObj.controls = false;
   document.body.appendChild(audioObj);
   let radioName = sessionStorage.getItem('playingNow');
   document.getElementById('pause-' + radioName).style.display = 'none';

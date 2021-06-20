@@ -5,7 +5,6 @@
 {% include 'parts/navbar_menu_close.html' %}
 {% include 'parts/navbar_search_open.html' %}
 
-<link rel="stylesheet" href="{{ url_for('.static', filename='css/tracks.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pagination.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tables.css') }}">
 
@@ -45,7 +44,7 @@
     <blockquote class="blockquote mb-0 ">
       <footer class="blockquote-footer">
         <cite title="Source Title">
-          <a class="text-muted " href="{{ radios[radio]['url'] }}" target="_blank">
+          <a class="text-muted " href="{{ radios[radio]['url'] }}" target="_blank" rel="noreferrer noopener">
             {{ radios[radio]['url'] }}
           </a>
         </cite>
@@ -58,16 +57,14 @@
 {#          </a>                                                                      #}
 {#            </div>                                                                  #}
 
-          <a type="button" class="btn btn-outline-secondary imports" role="button"
-                  href="#" onclick="showImports()">
+          <button type="button" class="btn btn-outline-secondary imports radio-{{ radio }} shadow-none" >
             Imports
-          </a>
+          </button>
 
 
-          <a type="button" class="btn btn-outline-secondary exports" role="button"
-                  href="#" onclick="showExports()">
+          <button type="button" class="btn btn-outline-secondary exports radio-{{ radio }} shadow-none" >
             Exports
-          </a>
+          </button>
 
       </div>
       <div>
@@ -164,36 +161,49 @@
     </div>
 
 {# SLIDE FOR EXPORTS / IMPORTS / TRACKS #}
-      <div class="carousel-item">
+      <div class="carousel-item" id="carIE">
         <div class="container" style="margin-bottom: 80px">
-          <table class="table table-hover table-dark" style="min-height: 800px">
+          <table id="tableIE" class="table table-hover table-dark">
             <thead>
               <tr id="tableHeaders" style="vertical-align: top">
               </tr>
             </thead>
             <tbody>
-<!--            {% for track in tracks_data %}-->
-              <tr>
-                <td>artist</td>
-                <td>title</td>
-              </tr>
-                <tr style="display: none">
-                <td> op </td>
-                <td> pop </td>
-              </tr>
-<!--            {% endfor %}-->
             </tbody>
           </table>
+          {% set pageSelect_id = 'pageSelect' %}
+          {% set totalPages_id = 'totalPages' %}
+          {% set limitSelect_id = 'limitSelect' %}
+          {% include 'parts/pagination.html' %}
+        </div>
+      </div>
+
+    {# SLIDE FOR EXPORTS / IMPORTS / TRACKS #}
+      <div class="carousel-item" id="carTracks">
+        <div class="container" style="margin-bottom: 80px">
+          <table id="tableTracks" class="table table-hover table-dark">
+            <thead>
+              <tr id="tableTracksHeaders" style="vertical-align: top">
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+          {% set pageSelect_id = 'pageSelect2' %}
+          {% set totalPages_id = 'totalPages2' %}
+          {% set limitSelect_id = 'limitSelect2' %}
           {% include 'parts/pagination.html' %}
         </div>
       </div>
 
   </div>
-  <a id="carouselNext" class="carousel-control-next" href="#!" role="button" onclick="showNextSlide()" style="display:none">
-    <span id="carouselNextText" class="sr-only" style="font-size: 22px" >
-        Radios >
+  <a id="carouselPrev" class="carousel-control-prev" href="#" role="button" onclick="showNextSlide()"
+     style="display:none; text-decoration: none;">
+    <span id="carouselText" class="sr-only" style="font-size: 22px" >
+        < Radios
     </span>
   </a>
+
     </div>
 <!--<div>-->
 
@@ -215,8 +225,9 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/embed_player.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/radios.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('.static', filename='js/carousel_control.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('.static', filename='js/pagination.js') }}"></script>
 <!--<script src="https://sdk.scdn.co/spotify-player.js"></script>-->
 <!--<script type="text/javascript" src="{{ url_for('static', filename='js/end_scripts.js') }}"></script>-->
 </body>

@@ -182,7 +182,7 @@ document.querySelector('.card').style.backgroundColor = 'rgb(11 0 255 / 9%) !imp
 //////////////////// RADIO PLAYING ///////////////////////
 
 var audioObj = document.createElement('audio');
-audioObj.controls = true;
+// audioObj.controls = true;
 audioObj.autoplay = true;
 document.body.appendChild(audioObj);
 audioObj.style.left=0;
@@ -212,7 +212,7 @@ function pauseRadio(){
   let tmp = audioObj;
   audioObj = document.createElement('audio');
   tmp.remove();
-  audioObj.controls = true;
+  // audioObj.controls = true;
   audioObj.style.left=0;
 //  audioObj.style.display="none";
   document.body.appendChild(audioObj);

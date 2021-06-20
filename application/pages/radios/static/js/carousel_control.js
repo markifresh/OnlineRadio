@@ -4,53 +4,76 @@ let toastHeader = document.getElementById('toastHeader');
 let toastBody = document.getElementById('toastBody');
 let pageHeader = document.getElementById('pageHeader');
 
+document.addEventListener('click', function(event){
+  if(event.target.classList.contains('imports'))
+      showImports();
+  else if(event.target.classList.contains('exports'))
+      showExports();
+})
 
-if(getCookie('user_id') ){
-    selectUserRadios(getCookie('user_id'));
-    selectUserSettings(getCookie('user_id'));
+// if(getCookie('user_id') ){
+//     selectUserRadios(getCookie('user_id'));
+//     selectUserSettings(getCookie('user_id'));
+// }
+
+function setImports(){
+  let url = '/api/users/' + getCookie('user_id') + '/imports';
+  getSetData(url, setImportsData);
 }
 
 function showImports(){
-    showNextSlide();
-    document.getElementById('tableHeaders').innerHTML = '' +
-        '<th scope="col">Export Date</th>\n' +
-        '<th scope="col">Tracks Added</th>\n' +
-        '<th scope="col">Exported</th>\n' +
-        '<th scope="col">Reviewed</th>'
+  setImports();
+  showNextSlide();
+}
+
+function setExports(){
+  let url = '/api/users/' + getCookie('user_id') + '/exports';
+  getSetData(url, setExportsData);
 
 }
 
 function showExports(){
+    setExports();
     showNextSlide();
-    document.getElementById('tableHeaders').innerHTML = '' +
-        '<th scope="col">Import Date</th>\n' +
-        '<th scope="col">Tracks Added</th>'
+}
+
+function setTracks(){
+
 }
 
 function showTracks(){
-//    showNextSlide();
-    document.getElementById('tableHeaders').innerHTML = '' +
-        '<th scope="col">Artist</th>\n' +
-        '<th scope="col">Title</th>\n' +
-        '<th scope="col">Rank</th>'
+  document.getElementById('carouselText').innerText = '< Imports';
+  let url = '/api/users/' + getCookie('user_id') + '/imports/' + this.id + '/tracks';
+  getSetData(url, setTracksData);
+  let textBTN = document.getElementById('carouselText');
+  textBTN.innerText == '< Imports'
+  carousel.next();
 }
 
 
 function showNextSlide(){
-  carousel.next();
-  let nextBtn = document.getElementById('carouselNext');
-
+  let prevBTN = document.getElementById('carouselPrev');
+  let textBTN = document.getElementById('carouselText');
 //  If it's not 'Radio' slide
-  if (nextBtn.style.display == 'none'){
-    nextBtn.style.display = '';
+  if (prevBTN.style.display == 'none'){
+    carousel.next();
+    prevBTN.style.display = '';
     document.querySelector('audio').pause();
     document.querySelector('audio').style.display = 'none';
     }
 
 // If it's 'Radio' slide
   else{
-    nextBtn.style.display = 'none';
+    carousel.prev();
+    if (textBTN.innerText == '< Imports'){
+      setTotalPages('carIE');
+      textBTN.innerText = '< Radios';
+    }
+
+    else{
+    prevBTN.style.display = 'none';
     document.querySelector('audio').style.display = '';
+  }
   }
 
 }

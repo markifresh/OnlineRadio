@@ -1,18 +1,21 @@
 <div class="pagination fixed-bottom justify-content-between mx-3">
 
   <nav aria-label="Page navigation example justify-content-end">
-    <ul id='pageSelect' class="pagination pagination-dark justify-content-start">
+<!--    <ul id='pageSelect' class="pagination pagination-dark justify-content-start">-->
+    <ul id='{{ pageSelect_id }}' class="pagination pagination-dark justify-content-start page-select">
       <li class="prevPage page-item disabled"><a class="back-next page-link"><--</a>
       <li class="page-item active"><a class="page firstPage page-link">1</a></li>
       <li class="page-item"><a class="page page-link">2</a></li>
       <li class="page-item"><a class="page borderPage page-link">3</a></li>
-      <li class="page-item disabled"><a class="lastPage page-link">from <span id="totalPages">0</span></a></li>
+<!--      <li class="page-item disabled"><a class="lastPage page-link">from <span id="totalPages">0</span></a></li>-->
+      <li class="page-item disabled"><a class="lastPage page-link">from <span class="total-pages" id="{{ totalPages_id }}">0</span></a></li>
       <li class="nextPage page-item"><a class="back-next page-link">--></a>
       </li>
     </ul>
 
   </nav>
-    <ul id='limitSelect' class="pagination pagination-dark justify-content-start">
+<!--    <ul id='limitSelect' class="pagination pagination-dark justify-content-start">-->
+    <ul id='{{ limitSelect_id }}' class="pagination pagination-dark justify-content-start limit-select">
       <li class="page-item disabled"><a class="page-link">Per Page:</a></li>
       <li class="page-item active"><a class="page-link">15</a></li>
       <li class="page-item"><a class="page-link">30</a></li>

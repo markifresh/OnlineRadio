@@ -83,6 +83,6 @@ def logout():
     return redirect(url_for('auth_page.login'))
 
 
-'https://hackersandslackers.com/flask-login-user-authentication/'
-'https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login'
-'https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins'
+# 'https://hackersandslackers.com/flask-login-user-authentication/'
+# 'https://www.digitalocean.com/community/tutorials/how-to-add-authentication-to-your-app-with-flask-login'
+# 'https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins'
