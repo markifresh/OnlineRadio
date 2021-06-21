@@ -27,9 +27,10 @@ function showEmbed(domElem, width){
 }
 
 document.getElementById('carTracks').addEventListener('click', function(event){
-  if(event.target.parentElement.tagName == 'TR'){
+  console.log(event.currentTarget );
+  if(event.target.classList.contains('track-play')){
+
     let elem = event.target.parentElement;
-    console.log(elem);
     hideElem(elem.children[1]);
     // showEmbed(elem, elem.querySelector('td').offsetWidth);
     showEmbed(elem, width="300");

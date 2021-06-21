@@ -29,10 +29,30 @@ tbody tr{
   height: 85px;
 }
 
+tbody tr button{
+  width: 33px !important;
+  padding: 0 !important;
+}
+
 /* iframe{
   margin-right: -500px;
 } */
 
-tr button {
+/* tr button {
   margin-right: 5px;
+} */
+.track-like:hover svg path{
+  fill: brown;
+}
+
+.track-export:hover svg path{
+  fill: antiquewhite;
+}
+
+.track-delete:hover svg path{
+  fill: antiquewhite;
+}
+
+.track-play:hover svg path{
+  fill: antiquewhite;
 }
