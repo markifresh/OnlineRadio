@@ -16,25 +16,47 @@ function showElem(domElem){
   domElem.style.opacity = '1';
 }
 
-function showEmbed(domElem, width){
-  let track = domElem.classList[0].replace('ms_id-','')
-  createEmbed(track, domElem, width);
-  setTimeout(function(){
-    domElem.querySelector('td iframe').parentElement.style.display = '';
-    domElem.style.opacity = '1';
-  }, 600);
+function toggleEmbed(domElem, width){
+  if(!domElem.querySelector('.embed-player')){
+    let track = domElem.classList[0].replace('ms_id-','')
+    createEmbed(track, domElem, width);
+    setTimeout(function(){
+      domElem.querySelector('.embed-player').style.display = '';
+      domElem.style.opacity = '1';
+    }, 600);
+}
+  else{
+      domElem.querySelector('.embed-holder').style.opacity = '1';
+    setTimeout(function(){
+      domElem.querySelector('.embed-holder').style.display = '';
+      domElem.querySelector('.embed-player').remove();
+      domElem.style.opacity = '1';
+    }, 600);
+  }
+}
 
+function findBTN(elem){
+  let btn = '';
+  if(elem.parentElement.tagName == 'BUTTON')
+    btn =  elem.parentElement;
+
+  else if(elem.parentElement.parentElement.tagName == 'BUTTON')
+    btn = elem.parentElement.parentElement;
+  return btn
 }
 
 document.getElementById('carTracks').addEventListener('click', function(event){
-  console.log(event.currentTarget );
   if(event.target.classList.contains('track-play')){
-
-    let elem = event.target.parentElement;
-    hideElem(elem.children[1]);
-    // showEmbed(elem, elem.querySelector('td').offsetWidth);
-    showEmbed(elem, width="300");
-
-  }
+    let btn = findBTN(event.target);
+    btn.classList.toggle('flip');
+    let elem = btn.parentElement.parentElement;
+      hideElem(elem.children[1]);
+      // showEmbed(elem, elem.querySelector('td').offsetWidth);
+      toggleEmbed(elem, width="300");
+    }
+  else if(event.target.classList.contains('track-like')){
+    let btn = findBTN(event.target);
+    btn.querySelector('path').classList.toggle('liked');
+    }
 
 })

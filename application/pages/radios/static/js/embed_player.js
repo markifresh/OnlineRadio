@@ -60,6 +60,7 @@ const iframeHeight = "80";
 function createEmbed(track, domElem, width=iframeWidth, height=iframeHeight){
   let td = document.createElement('td');
   td.style.display = 'none';
+  td.classList.add('embed-player');
   let iframe = document.createElement('iframe');
   iframe.width = width;
   iframe.height = height;
@@ -79,7 +80,7 @@ function createEmbed(track, domElem, width=iframeWidth, height=iframeHeight){
   iframe.innerHTML += 'onload="access()"';
   td.style.padding = "0px";
   td.appendChild(iframe);
-  
+
   domElem.insertBefore(td, domElem.children[1])
   // domElem.appendChild(iframe);
 

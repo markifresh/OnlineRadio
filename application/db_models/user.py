@@ -112,9 +112,14 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user_liked_tracks(cls, account_id):
         user = cls.get_user(account_id)
-        tracks_list = user.liked_tracks[:-1].split(',')
-        track_db = track.Track
-        return track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+        tracks_list = []
+
+        if user.liked_tracks:
+            tracks_list = user.liked_tracks[:-1].split(',')
+            track_db = track.Track
+            tracks_list = track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
+
+        return tracks_list
 
     # def get_liked_tracks(self):
     #     return self.get_user_liked_tracks(self.account_id)

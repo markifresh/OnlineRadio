@@ -112,8 +112,15 @@ class UserImportTracks(Resource):
         """ All tracks of imports of radio of user """
         import_date = validators.validate_date(import_date)
         validators.validate_user(account_id)
-        service_name = user.User.get_user(account_id).service_name
-        return tracks_import.TracksImport.get_import_tracks(import_date, service_name)
+        current_user = user.User.get_user(account_id)
+        user_liked_tracks = [int(cur_track) for cur_track in current_user.liked_tracks.split(',')]
+        import_tracks = tracks_import.TracksImport.get_import_tracks(import_date, current_user.service_name)
+        for import_track in import_tracks:
+            if import_track.id in user_liked_tracks:
+                import_track.liked = True
+            else:
+                import_track.liked = False
+        return import_tracks
 
 @users_api.route('/<account_id>/imports/<radio_name>/tracks')
 @users_api.param('account_id', 'Account ID of user')

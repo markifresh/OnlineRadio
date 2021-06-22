@@ -32,8 +32,22 @@ tbody tr{
 tbody tr button{
   width: 33px !important;
   padding: 0 !important;
+  transition: all 1s !important;
+  transition-timing: ease-in-out !important;
+  /* pointer-events: none; */
 }
 
+.flip {
+  transform: rotate(180deg);
+}
+
+.liked {
+  fill: brown;
+}
+
+/* .liked:hover svg path{
+  fill: darkgray;
+} */
 /* iframe{
   margin-right: -500px;
 } */

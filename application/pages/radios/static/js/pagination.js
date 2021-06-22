@@ -229,22 +229,23 @@ function setTracksData(data){
 
           let innerTds = '';
           newTr.id = data[i]['id'];
-          newTr.classList.add('ms_id-' + data[i]['ms_id'])
+          newTr.classList.add('ms_id-' + data[i]['ms_id']);
+          let pathLikedClass = data[i]['liked'] ? 'liked' : '';
           innerTds += '<td>';
           innerTds += '<button class="btn btn-sm shadow-none track-like">' +
-                          '<svg height="23px" viewBox="0 0 24 24" width="23px" fill="#000000">' +
-                                '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="darkgray"/>' +
+                          '<svg height="23px" class="track-like" viewBox="0 0 24 24" width="23px" fill="#000000">' +
+                                '<path class="track-like ' + pathLikedClass + '" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="darkgray"/>' +
                           '</svg></button>';
 
 
 
           innerTds += '<button class="btn btn-sm shadow-none track-play">' +
-                          '<svg height="32px" viewBox="0 0 24 24" width="32px" fill="#000000">' +
-                                '<path d="M10 8.64L15.27 12 10 15.36V8.64M8 5v14l11-7L8 5z" fill="darkgray"/>' +
+                          '<svg class="track-play" height="32px" viewBox="0 0 24 24" width="32px" fill="#000000">' +
+                                '<path class="track-play" d="M10 8.64L15.27 12 10 15.36V8.64M8 5v14l11-7L8 5z" fill="darkgray"/>' +
                           '</svg></button>';
           innerTds += '</td>';
 
-          innerTds += '<td class="embedHolder">' + data[i]['artist'] + '</td>';
+          innerTds += '<td class="embed-holder">' + data[i]['artist'] + '</td>';
           innerTds += '<td>' + data[i]['title'] + '</td>';
           innerTds += '<td>' + formatDate(data[i]['play_date']) + '</td>';
           innerTds += '<td>' + data[i]['rank'] + '</td>';
@@ -255,8 +256,8 @@ function setTracksData(data){
                           '</svg></button>';
 
           innerTds += '<button class="btn btn-sm shadow-none track-export"">' +
-                          '<svg height="26px" viewBox="0 0 24 24" width="26px" fill="#000000">' +
-                                '<path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" fill="darkgray"/>' +
+                          '<svg class="track-export" height="26px" viewBox="0 0 24 24" width="26px" fill="#000000">' +
+                                '<path class="track-export" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" fill="darkgray"/>' +
                           '</svg></button>';
                           innerTds += '</td>';
           newTr.innerHTML = innerTds;
