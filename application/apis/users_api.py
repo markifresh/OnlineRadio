@@ -45,7 +45,28 @@ class UserTracks(Resource):
         """ All users tracks (for all radios) """
         return user.User.get_user_tracks(account_id)
 
+@users_api.route('/<account_id>/tracks/liked')
+@users_api.param('account_id', 'Account ID of user')
+class UserLikedTracks(Resource):
 
+    @users_api.marshal_list_with(tracks_schemas.track_brief)
+    def get(self, account_id):
+        """ All users liked tracks (for all radios) """
+        return user.User.get_user_liked_tracks(account_id)
+
+    @users_api.marshal_list_with(tracks_schemas.track_brief)
+    def post(self, account_id):
+        """ Mark tracks as liked """
+        tracks_ids = request.json or {}
+        tracks_ids = tracks_ids.get('tracks_ids')
+        return user.User.liked_tracks_add(account_id, tracks_ids)
+
+    @users_api.marshal_list_with(tracks_schemas.track_brief)
+    def delete(self, account_id):
+        """ Remove tracks from liked """
+        tracks_ids = request.json or {}
+        tracks_ids = tracks_ids.get('tracks_ids')
+        return user.User.liked_tracks_remove(account_id, tracks_ids)
 
 @users_api.route('/<account_id>/imports')
 @users_api.param('account_id', 'Account ID of user')
@@ -63,6 +84,16 @@ class UserImports(Resource):
         date = data.get('date', datetime.now().date() - timedelta(days=1))
         radio_name = data.get('radio_name')
         return {}
+
+@users_api.route('/<account_id>/imports/<import_date>')
+@users_api.param('account_id', 'Account ID of user')
+@users_api.param('import_date', 'date of import')
+class UserImport(Resource):
+
+    @users_api.marshal_with(dbimports_schemas.di_full)
+    def get(self, account_id, import_date):
+        """ User import for date """
+        return user.User.get_user_import(account_id, import_date)
 
 @users_api.route('/<account_id>/imports/<radio_name>')
 @users_api.param('account_id', 'Account ID of user')
@@ -121,6 +152,18 @@ class UserImportTracks(Resource):
             else:
                 import_track.liked = False
         return import_tracks
+
+
+@users_api.route('/<account_id>/imports/<import_date>/tracks/<tracks_id>')
+@users_api.param('account_id', 'Account ID of user')
+@users_api.param('import_date', 'Date of import')
+class UserImportTrackDelete(Resource):
+
+    @users_api.marshal_list_with(tracks_schemas.track_brief)
+    def delete(self, account_id, import_date):
+        tracks_ids = request.json or {}
+        tracks_ids = tracks_ids.get('tracks_ids')
+        return user.User.import_tracks_remove(account_id, import_date, tracks_ids)
 
 @users_api.route('/<account_id>/imports/<radio_name>/tracks')
 @users_api.param('account_id', 'Account ID of user')

@@ -5,6 +5,7 @@ tracks_schemas = Namespace('tracks_schemas', description='Input Output schemas f
 track_brief = tracks_schemas.model('track_brief', {
     'artist': fields.String(description='title of a track'),
     'title': fields.String(description='artist of a track'),
+    'id': fields.Integer(description='track id'),
 })
 
 track_full = tracks_schemas.model('track_full', {
@@ -28,10 +29,10 @@ track_table = tracks_schemas.model('track_table', {
     'id': fields.Integer(required=True),
     'artist': fields.String(required=True),
     'title': fields.String(required=True),
-    'rank': fields.Integer(required=True),
-    'ms_id': fields.String(required=False),
-    'play_date': fields.DateTime,
-    'liked': fields.Boolean
+    'rank': fields.Integer(description='rank of track based on Deezer', required=True),
+    'ms_id': fields.String(description='id of track in Music Service', required=False),
+    'play_date': fields.DateTime(description='when track was played'),
+    'liked': fields.Boolean(description='if track was liked')
 })
 
 track_update = track_full

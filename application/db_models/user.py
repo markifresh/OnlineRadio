@@ -9,6 +9,7 @@ from application.db_models import tracks_export
 from application.db_models import radio
 from application.db_models import track
 from application.CustomExceptions import UniqueDBObjectError, BasicCustomException
+from application.schema_models.validators import validate_date
 from config import users_settings, date_format
 
 class User(UserMixin, BaseExtended):
@@ -115,7 +116,7 @@ class User(UserMixin, BaseExtended):
         tracks_list = []
 
         if user.liked_tracks:
-            tracks_list = user.liked_tracks[:-1].split(',')
+            tracks_list = user.liked_tracks.split(',')
             track_db = track.Track
             tracks_list = track_db.query(track_db).filter(track_db.id.in_(tracks_list)).all()
 
@@ -123,6 +124,77 @@ class User(UserMixin, BaseExtended):
 
     # def get_liked_tracks(self):
     #     return self.get_user_liked_tracks(self.account_id)
+
+    @classmethod
+    def liked_tracks_add(cls, account_id, tracks_ids_list):
+        if not isinstance(tracks_ids_list, list):
+            tracks_ids_list = [tracks_ids_list]
+
+        # get a list
+        tracks_ids_list = [int(one_track) for one_track in tracks_ids_list]
+
+        # verify all tracks in DB
+        track_db = track.Track
+        tracks = track_db.query(track_db).filter(track_db.id.in_(tracks_ids_list)).all()
+        track_db.session.close()
+
+        if len(tracks_ids_list) != len(tracks):
+            found = [tr.id for tr in tracks]
+            missing = [tr for tr in tracks_ids_list if tr not in found]
+            raise BasicCustomException(f'Could not find tracks: {missing}')
+
+        # get users liked tracks and check new tracks not in liked tracks already
+        user = cls.get_user(account_id)
+        tracks_ids_list = [str(one_track) for one_track in tracks_ids_list]
+        user_list = [] if not user.liked_tracks else user.liked_tracks.split(',')
+
+        for new_track in tracks_ids_list:
+            if new_track in user_list:
+                raise BasicCustomException(f'{new_track} is already in list of liked')
+
+        user_list = user_list + tracks_ids_list
+        user_list = ','.join(user_list)
+
+        db_update = cls.update_row({'account_id': account_id, 'liked_tracks': user_list})
+        if not db_update['success']:
+            raise BasicCustomException(f'Failed to update user DB object \n {db_update}')
+
+        return tracks
+
+    @classmethod
+    def liked_tracks_remove(cls, account_id, tracks_ids_list):
+        if not isinstance(tracks_ids_list, list):
+            tracks_ids_list = [tracks_ids_list]
+
+        tracks_ids_list = [int(one_track) for one_track in tracks_ids_list]
+        track_db = track.Track
+        tracks = track_db.query(track_db).filter(track_db.id.in_(tracks_ids_list)).all()
+        track_db.session.close()
+
+        if len(tracks_ids_list) != len(tracks):
+            found = [tr.id for tr in tracks]
+            missing = [tr for tr in tracks_ids_list if tr not in found]
+            raise BasicCustomException(f'Could not find tracks: {missing}')
+
+
+        tracks_ids_list = [str(one_track) for one_track in tracks_ids_list]
+        user = cls.get_user(account_id)
+        user_list = [] if not user.liked_tracks else user.liked_tracks.split(',')
+
+        removed_tracks = []
+        for one_track in tracks_ids_list:
+            if one_track in user_list:
+                user_list.remove(one_track)
+                removed_tracks.append(one_track)
+
+        user_list = ','.join(user_list)
+
+        db_update = cls.update_row({'account_id': account_id, 'liked_tracks': user_list})
+        if not db_update['success']:
+            raise BasicCustomException(f'Failed to update user DB object \n {db_update}')
+
+        return tracks
+
 
     @classmethod
     def get_user_imports(cls, account_id):
@@ -140,6 +212,38 @@ class User(UserMixin, BaseExtended):
                 res[i].exported = orig_import.exported
         user.session.close()
         return res
+
+    @classmethod
+    def get_user_import(cls, account_id, import_date):
+        user = cls.get_user(account_id)
+        return user.imports.filter(tracks_import.TracksImport.import_date == validate_date(import_date)).first()
+
+    @classmethod
+    def import_tracks_remove(cls, account_id, import_date, track_ids):
+        if not isinstance(track_ids, list):
+            track_ids = [track_ids]
+
+        requested_import = cls.get_user_import(account_id, import_date)
+        tracks = requested_import.tracks.split(', ')
+
+        for one_track in track_ids:
+            if one_track in tracks:
+                tracks.remove(one_track)
+            else:
+                raise BasicCustomException(f'Track: {one_track} not in import: {import_date}')
+
+        tracks = ', '.join(tracks)
+        res = tracks_import.TracksImport.update_row({'import_date': validate_date(import_date), 'tracks': tracks})
+
+        if not res['success']:
+            raise BasicCustomException(str(res))
+
+        track_db = track.Track
+        removed_tracks = [int(one_track) for one_track in track_ids]
+        removed_track = track_db.query(track_db).filter(track_db.id.in_(removed_tracks)).all()
+        track_db.session.close()
+        return removed_track
+
 
     # def get_imports(self):
     #     return self.get_user_imports(self.account_id)

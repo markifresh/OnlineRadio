@@ -56,7 +56,15 @@ document.getElementById('carTracks').addEventListener('click', function(event){
     }
   else if(event.target.classList.contains('track-like')){
     let btn = findBTN(event.target);
+    let url = '/api/users/' + getCookie('user_id') + '/tracks/liked';
+    let data = {'tracks_ids': btn.parentElement.parentElement.id};
+    if(btn.querySelector('path').classList.contains('liked'))
+      method='DELETE';
+    else
+      method='POST';
+    commonFetch(url, method, data)
     btn.querySelector('path').classList.toggle('liked');
+
     }
 
 })

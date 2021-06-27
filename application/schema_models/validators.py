@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import request, session
 from flask_restx import reqparse, inputs, abort
 from config import date_format, import_date_format, date_hint
-from application.db_models.radio import Radio
+from application.db_models import radio
 from config import users_settings
 
 current_year = str(datetime.now().year)
@@ -81,7 +81,7 @@ def validate_date_range_post(start, end):
 
 
 def validate_radio_name(radio_name):
-    radios = [radio[0] for radio in Radio.query(Radio.name)]
+    radios = [one_radio[0] for one_radio in radio.Radio.query(radio.Radio.name)]
     if radio_name not in radios:
         abort(400, f'radio "{radio_name}" does not exists')
 

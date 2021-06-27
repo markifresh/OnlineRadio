@@ -219,6 +219,7 @@ function setTracksData(data){
 
 
   let table = document.getElementById('tableTracks');
+
   table.querySelector('tbody').remove();
   let newTbody = document.createElement('tbody');
   for (let i = 0; i < data.length; i++)

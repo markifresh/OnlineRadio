@@ -42,13 +42,13 @@ function formatDate(dateString){
   let month = current_datetime.getMonth() + 1;
   month = (month > 9)? month : '0' + month;
 
-  let hours = current_datetime.getHours() + 1;
+  let hours = current_datetime.getHours();
   hours = (hours > 9)? hours : '0' + hours;
 
-  let minutes = current_datetime.getMinutes() + 1;
+  let minutes = current_datetime.getMinutes();
   minutes = (minutes > 9)? minutes : '0' + minutes;
 
-  let seconds = current_datetime.getSeconds() + 1;
+  let seconds = current_datetime.getSeconds();
   seconds = (seconds > 9)? seconds : '0' + seconds;
 
   let formatted_date = day + "/" +

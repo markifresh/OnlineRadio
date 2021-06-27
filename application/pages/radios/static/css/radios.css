@@ -21,6 +21,12 @@ padding-bottom: 3px;
     min-height: 800px;
 }
 
+.tracks-header {
+  color: darkgray;
+  text-decoration: underline;
+  margin-bottom: 20px;
+}
+
 table tbody{
   vertical-align: middle !important;
 }

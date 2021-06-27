@@ -44,6 +44,14 @@ function setTracks(){
 function showTracks(){
   document.getElementById('carouselText').innerText = '< Imports';
   let url = '/api/users/' + getCookie('user_id') + '/imports/' + this.id + '/tracks';
+  commonFetch('/api/users/' + getCookie('user_id') + '/imports/' + this.id, 'GET', {}, function(data){
+    console.log(data);
+    document.querySelector('.tracks-header').id = data.import_date;
+    document.querySelector('.tracks-header').innerHTML= 'Import: ' + formatDate(data.import_date) +
+                                                          '<br> reviewed: ' + data.reviewed ;
+
+  })
+
   getSetData(url, setTracksData);
   let textBTN = document.getElementById('carouselText');
   textBTN.innerText == '< Imports'

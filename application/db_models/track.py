@@ -36,7 +36,7 @@ class Track(BaseExtended):
 
     def __repr__(self):
        return f"<Track(name: {self.common_name} [{self.play_date}], radio: {self.radio_name}, " \
-              f"import time: {self.import_date})>"
+              f"play_date: {self.play_date})>"
 
     @classmethod
     def query_tracks(cls, start_date='', end_date='', start='', end='', q_filter=''):
