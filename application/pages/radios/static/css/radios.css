@@ -27,6 +27,10 @@ padding-bottom: 3px;
   margin-bottom: 20px;
 }
 
+div p{
+  margin-bottom: 0px;
+}
+
 table tbody{
   vertical-align: middle !important;
 }
@@ -40,7 +44,18 @@ tbody tr button{
   padding: 0 !important;
   transition: all 1s !important;
   transition-timing: ease-in-out !important;
+  /* transform: translate(100px, 0px); */
   /* pointer-events: none; */
+}
+.move-hide{
+  transition: all 1s;
+  transform: translate(100px, 0px);
+  opacity: 0;
+}
+
+.export-animation{
+  transition: all 1.5s;
+  transform: rotateY(180deg);
 }
 
 .flip {

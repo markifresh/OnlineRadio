@@ -46,6 +46,7 @@ function findBTN(elem){
 }
 
 document.getElementById('carTracks').addEventListener('click', function(event){
+// Show Embed and Play
   if(event.target.classList.contains('track-play')){
     let btn = findBTN(event.target);
     btn.classList.toggle('flip');
@@ -54,6 +55,8 @@ document.getElementById('carTracks').addEventListener('click', function(event){
       // showEmbed(elem, elem.querySelector('td').offsetWidth);
       toggleEmbed(elem, width="300");
     }
+
+// Like-UnLike track
   else if(event.target.classList.contains('track-like')){
     let btn = findBTN(event.target);
     let url = '/api/users/' + getCookie('user_id') + '/tracks/liked';
@@ -64,7 +67,56 @@ document.getElementById('carTracks').addEventListener('click', function(event){
       method='POST';
     commonFetch(url, method, data)
     btn.querySelector('path').classList.toggle('liked');
-
     }
 
+// Delete Track from Import
+  else if (event.target.classList.contains('track-delete')) {
+    let btn = findBTN(event.target);
+    let data = {'tracks_ids': btn.parentElement.parentElement.id};
+    let importID = document.querySelector('.import-id').id;
+    let url = '/api/users/' + getCookie('user_id') + '/imports/' + importID + '/tracks';
+    let tr = btn.parentElement.parentElement;
+    let trs = document.querySelectorAll('#tableTracks tr');
+    let nextTrack = '';
+    for(let i=0; i < trs.length; i++){
+      if(trs[i] == tr)
+      {
+        for(let t=i; t < trs.length; t++)
+        {
+          if(trs[t].style.display == 'none')
+              {
+                nextTrack = trs[t];
+                break;
+              }
+        }
+        break;
+      }
+    }
+    commonFetch(url, "DELETE", data, function(){
+      tr.classList.toggle('move-hide');
+      setTimeout(function(){
+        tr.remove();
+        if (nextTrack)
+          nextTrack.style.display="";
+      }, 1000);
+    });
+
+  }
+
+// Export Track
+  else if (event.target.classList.contains('track-export')) {
+    let btn = findBTN(event.target);
+    btn.disabled = true;
+    let btnSVG = btn.querySelector('svg');
+    btnSVG.classList.toggle('export-animation');
+    let exportInterval = setInterval(function(){btnSVG.classList.toggle('export-animation')}, 1500);
+
+    let radioName = document.querySelector('.import-radio-name').id;
+    let url = '/api/users/' + getCookie('user_id') + '/exports/' + radioName + '/tracks';
+    let data = {'tracks_ids': btn.parentElement.parentElement.id};
+    commonFetch(url, "POST", data, function(resData){
+      clearInterval(exportInterval);
+      console.log(resData);
+    })
+  }
 })

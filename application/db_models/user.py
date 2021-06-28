@@ -219,6 +219,24 @@ class User(UserMixin, BaseExtended):
         return user.imports.filter(tracks_import.TracksImport.import_date == validate_date(import_date)).first()
 
     @classmethod
+    def export_tracks(cls, account_id, track_ids, radio_name):
+        if not isinstance(track_ids, list):
+            track_ids = [track_ids]
+
+        track_ids = [int(one_track) for one_track in track_ids]
+        track_db = track.Track
+        tracks = track_db.query(track_db).filter(track_db.id.in_(track_ids)).all()
+        track_db.session.close()
+
+        export_db = tracks_export.TracksExport
+        res = export_db.export_tracks_new(track_ids, account_id, radio_name)
+        export_db.session.close()
+        if res['success']:
+            return tracks
+
+        raise BasicCustomException(f'Failed to export tracks: \n {str(res)}')
+
+    @classmethod
     def import_tracks_remove(cls, account_id, import_date, track_ids):
         if not isinstance(track_ids, list):
             track_ids = [track_ids]

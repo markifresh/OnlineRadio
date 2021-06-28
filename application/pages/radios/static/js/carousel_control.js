@@ -46,9 +46,10 @@ function showTracks(){
   let url = '/api/users/' + getCookie('user_id') + '/imports/' + this.id + '/tracks';
   commonFetch('/api/users/' + getCookie('user_id') + '/imports/' + this.id, 'GET', {}, function(data){
     console.log(data);
-    document.querySelector('.tracks-header').id = data.import_date;
-    document.querySelector('.tracks-header').innerHTML= 'Import: ' + formatDate(data.import_date) +
-                                                          '<br> reviewed: ' + data.reviewed ;
+    document.querySelector('.import-id').id = data.import_date;
+    document.querySelector('.import-id').innerText = 'Import: ' + formatDate(data.import_date);
+    document.querySelector('.import-review').innerText = 'Reviewed: ' + data.reviewed;
+    document.querySelector('.import-radio-name').id = data.radio_name;
 
   })
 

@@ -153,17 +153,12 @@ class UserImportTracks(Resource):
                 import_track.liked = False
         return import_tracks
 
-
-@users_api.route('/<account_id>/imports/<import_date>/tracks/<tracks_id>')
-@users_api.param('account_id', 'Account ID of user')
-@users_api.param('import_date', 'Date of import')
-class UserImportTrackDelete(Resource):
-
     @users_api.marshal_list_with(tracks_schemas.track_brief)
     def delete(self, account_id, import_date):
         tracks_ids = request.json or {}
         tracks_ids = tracks_ids.get('tracks_ids')
         return user.User.import_tracks_remove(account_id, import_date, tracks_ids)
+
 
 @users_api.route('/<account_id>/imports/<radio_name>/tracks')
 @users_api.param('account_id', 'Account ID of user')
@@ -189,6 +184,7 @@ class UserExports(Resource):
         imports_ids = user.User.get_user_unexported_imports(account_id)
         imports_ids = [res['id'] for res in imports_ids]
         return {'result': tracks_export.TracksExport.export_imports(imports_ids)}
+
 
 @users_api.route('/<account_id>/exports/<radio_name>')
 @users_api.param('account_id', 'Account ID of user')
@@ -238,6 +234,12 @@ class UserRadioExportsTracks(Resource):
     # def put(self, common_name):
     #     """ Update track by name """
     #     return {'result': track_db.Track.get_track(common_name)}
+
+    @users_api.marshal_list_with(tracks_schemas.track_brief)
+    def post(self, account_id, radio_name):
+        tracks_ids = request.json or {}
+        tracks_ids = tracks_ids.get('tracks_ids')
+        return user.User.export_tracks(account_id, tracks_ids, radio_name)
 
 @users_api.route('/<account_id>/radios')
 @users_api.param('account_id', 'Account ID of user')
