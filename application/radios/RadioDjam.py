@@ -85,8 +85,39 @@ class Djam(RadioAbstract):
             ∟ timetoplay - time after which need to make next request to get new current playing
         other tracks - previous played (9 tracks)
         """
+        latest_tracks = []
         res = req_post(self.current_playing_url, data={'origin': 'website'})
-        return json_loads(res.text)['tracks']
+        res = json_loads(res.text)['tracks']
+
+        for one_track in res:
+            seconds_to_play = one_track.get('timetoplay', 0)
+            seconds_playing = int(one_track['duration']) - seconds_to_play
+            start_date = datetime.now() - timedelta(seconds=seconds_playing)
+            end_date = start_date + timedelta(seconds=seconds_to_play)
+
+            spotify = one_track['spotify']
+            if spotify:
+                spotify = spotify.get('id', '').split('track:')[-1]
+
+            deezer = one_track['deezer']
+            if deezer:
+                deezer = deezer.get('id', '')
+
+            track_dict = {
+
+                'artist': one_track['artist'],
+                'title': one_track['title'],
+                'common_name': f"{one_track['artist']} - {one_track['title']}",
+                'timetoplay': seconds_to_play,
+                'spotify': spotify,
+                'deezer': deezer,
+                'radio_name': self.radio_id,
+                'start_date': start_date,
+                'end_date': end_date
+            }
+            latest_tracks.append(track_dict)
+
+        return latest_tracks
 
     # todo: unify current tracks output for all radios
     # todo: as Djam gives 9 tracks from now to past, dump it maybe to separate DB which will overrides

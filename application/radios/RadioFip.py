@@ -130,7 +130,7 @@ class Fip(RadioAbstract):
                 'for_date': '', 'request_time': request_time, 'start_date': start_original, 'end_date': end_date,}
 
     def get_current_track(self):
-        orig_date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        # orig_date = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         url = self.tracks_request_url
         json = {'query': '{ live'
                          f'(station: {self.radio_id}) '
@@ -143,32 +143,29 @@ class Fip(RadioAbstract):
             return {'success': False, 'result': 'Failed to get tracks from API', 'respond': ''}
 
         track = json_loads(res.text)['data']['live']['song']
-        play_time = track.get('start', '')
 
-        if not play_time:
-            start_date = orig_date
-        else:
-            start_date = datetime.fromtimestamp(play_time).strftime('%d/%m/%Y %H:%M:%S')
+        start_time = track.get('start', '')
+        start_date = datetime.fromtimestamp(start_time)
 
         end_time = track.get('end', '')
+        end_date = datetime.fromtimestamp(end_time)
 
-        if not end_time:
-            end_date = orig_date
-        else:
-            end_date = datetime.fromtimestamp(end_time).strftime('%d/%m/%Y %H:%M:%S')
+        timetoplay = (end_date - datetime.now()).seconds
 
         track = track['track']
         if track:
             artist = ','.join(track.get('mainArtists', '')).strip()
             title = track.get('title', '').strip()
             common_name = f'{artist} - {title}'
-            return {'album_name': track.get('albumTitle', ''),
-                    'common_name': common_name,
+            return {'common_name': common_name,
                     'artist': artist,
                     'title': title,
                     'start_date': start_date,
                     'end_date': end_date,
-                    'radio_name': self.radio_id}
+                    'radio_name': self.radio_id,
+                    'timetoplay': timetoplay,
+                    'spotify': '',
+                    'deezer': ''}
 
         return {}
 

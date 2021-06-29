@@ -28,10 +28,7 @@ class Track(BaseExtended):
     # failed_to_spotify = Column(String)
     genre = Column(String(20))
     created_on = Column(DateTime(), default=datetime.now)
-    services = Column(JSON)
-    """
-        {"deezer": 2542703, "spotify": "5O4erNlJ74PIF6kGol1ZrC"}
-    """
+    services = Column(JSON)  # {"deezer": 2542703, "spotify": "5O4erNlJ74PIF6kGol1ZrC"}
 
 
     def __repr__(self):
