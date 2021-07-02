@@ -9,7 +9,7 @@ from application.db_models import tracks_export
 from application.db_models import radio
 from application.db_models import track
 from application.CustomExceptions import UniqueDBObjectError, BasicCustomException
-from application.schema_models.validators import validate_date
+from application.schema_models import validators
 from config import users_settings, date_format
 
 class User(UserMixin, BaseExtended):
@@ -216,7 +216,7 @@ class User(UserMixin, BaseExtended):
     @classmethod
     def get_user_import(cls, account_id, import_date):
         user = cls.get_user(account_id)
-        return user.imports.filter(tracks_import.TracksImport.import_date == validate_date(import_date)).first()
+        return user.imports.filter(tracks_import.TracksImport.import_date == validators.validate_date(import_date)).first()
 
     @classmethod
     def export_tracks(cls, account_id, track_ids, radio_name):
@@ -251,7 +251,7 @@ class User(UserMixin, BaseExtended):
                 raise BasicCustomException(f'Track: {one_track} not in import: {import_date}')
 
         tracks = ', '.join(tracks)
-        res = tracks_import.TracksImport.update_row({'import_date': validate_date(import_date), 'tracks': tracks})
+        res = tracks_import.TracksImport.update_row({'import_date': validators.validate_date(import_date), 'tracks': tracks})
 
         if not res['success']:
             raise BasicCustomException(str(res))

@@ -1,4 +1,4 @@
-from application.db_models import user, tracks_import, tracks_export, radio
+from application.db_models import user, tracks_import, tracks_export, radio, radio_live
 from flask_restx import Namespace, Resource, fields, reqparse, inputs
 from flask import request
 from application.schema_models import users_schemas, validators, dbimports_schemas, exports_schemas, tracks_schemas, radios_schemas
@@ -263,6 +263,18 @@ class UserRadios(Resource):
         radio_name = request.json.get('radio_name')
         validators.validate_radio_name(radio_name)
         return user.User.delete_user_radio(account_id, radio_name)
+
+
+@users_api.route('/<account_id>/radios/<radio_name>/live')
+@users_api.param('account_id', 'Account ID of user')
+@users_api.param('radio_name', 'Name of radio')
+class UserRadioLive(Resource):
+
+    @users_api.marshal_with(radios_schemas.radio_live_result)
+    def get(self, account_id, radio_name):
+        validators.validate_radio_name(radio_name)
+        """ Current playing track """
+        return radio_live.RadioLive.get_live(radio_name)
 
 @users_api.route('/<account_id>/settings')
 @users_api.param('account_id', 'Account ID of user')

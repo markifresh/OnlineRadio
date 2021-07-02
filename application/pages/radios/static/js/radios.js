@@ -45,6 +45,60 @@ function findBTN(elem){
   return btn
 }
 
+// Play Radio
+document.getElementById('live_play').addEventListener('click', function(event){
+  let radios = getRadios();
+  if (radios.includes(sessionStorage.getItem('lastPlayed')))
+    playRadio(sessionStorage.getItem('lastPlayed'));
+  else
+    playRadio(radios[0]);
+});
+
+
+// Pause Radio
+document.getElementById('live_pause').addEventListener('click', pauseRadio);
+
+
+// Play Previous Radio
+document.getElementById('live_prev').addEventListener('click', function(event){
+  playRadio(getPrevRadio());
+});
+
+// Play Next Radio
+document.getElementById('live_next').addEventListener('click', function(event){
+  playRadio(getNextRadio());
+});
+
+// Like Player
+document.getElementById('live_like').addEventListener('click', function(event){
+  let trackID = document.querySelector('.live-track').id;
+  if (trackID && trackID > 0){
+    if(document.querySelector('#live_like path').classList.contains('liked'))
+      deleteTrackFromLiked(trackID);
+    else
+      addTrackToLiked(trackID);
+    document.querySelector('#live_like path').classList.toggle('liked');
+  }
+});
+
+
+function toggleToLiked(trackID, add=true) {
+  let url = '/api/users/' + getCookie('user_id') + '/tracks/liked';
+  let data = {'tracks_ids': trackID};
+  if(add)
+    commonFetch(url, 'POST', data)
+  else
+    commonFetch(url, 'DELETE', data)
+}
+
+function addTrackToLiked(trackID) {
+  toggleToLiked(trackID, true)
+}
+
+function deleteTrackFromLiked(trackID) {
+  toggleToLiked(trackID, false)
+}
+
 document.getElementById('carTracks').addEventListener('click', function(event){
 // Show Embed and Play
   if(event.target.classList.contains('track-play')){
@@ -59,13 +113,11 @@ document.getElementById('carTracks').addEventListener('click', function(event){
 // Like-UnLike track
   else if(event.target.classList.contains('track-like')){
     let btn = findBTN(event.target);
-    let url = '/api/users/' + getCookie('user_id') + '/tracks/liked';
-    let data = {'tracks_ids': btn.parentElement.parentElement.id};
+    let trackID = btn.parentElement.parentElement.id;
     if(btn.querySelector('path').classList.contains('liked'))
-      method='DELETE';
+      deleteTrackFromLiked(trackID);
     else
-      method='POST';
-    commonFetch(url, method, data)
+      addTrackToLiked(trackID);
     btn.querySelector('path').classList.toggle('liked');
     }
 

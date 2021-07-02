@@ -90,10 +90,10 @@ class Djam(RadioAbstract):
         res = json_loads(res.text)['tracks']
 
         for one_track in res:
-            seconds_to_play = one_track.get('timetoplay', 0)
+            seconds_to_play = one_track.get('timetoplay', 0) + 25
             seconds_playing = int(one_track['duration']) - seconds_to_play
             start_date = datetime.now() - timedelta(seconds=seconds_playing)
-            end_date = start_date + timedelta(seconds=seconds_to_play)
+            end_date = datetime.now() + timedelta(seconds=seconds_to_play)
 
             spotify = one_track['spotify']
             if spotify:

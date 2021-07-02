@@ -241,8 +241,12 @@ class Track(BaseExtended):
         return cls.query_tracks(start=start_id, end=end_id)
 
     @classmethod
-    def get_track(cls, common_name):
-        return cls.query(cls).filter(cls.common_name == common_name).one_or_none()
+    def get_track(cls, track):
+        if isinstance(track, int) or track.isdecimal():
+            res = cls.query(cls).filter(cls.id == int(track)).one_or_none()
+        else:
+            res = cls.query(cls).filter(cls.common_name == track).one_or_none()
+        return res
 
 #### NOT Reviewed Tracks ####
     @classmethod

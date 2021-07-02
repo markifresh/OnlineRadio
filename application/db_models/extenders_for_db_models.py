@@ -60,7 +60,7 @@ class BaseExtended(Base):
         return res
 
     @classmethod
-    def update_row(cls, data):
+    def update_row(cls, data, create_new=False):
 
         # if call from class
         if isinstance(cls, api.DeclarativeMeta):
@@ -82,8 +82,8 @@ class BaseExtended(Base):
                 cls.session.rollback()
                 result = {'success': False, 'result': traceback_format_exc()}
 
-        # elif obj.count() == 0:
-        #     return cls.commit_data(data)
+        elif obj.count() == 0 and create_new:
+            return cls.commit_data(data)
 
         else:
             result = {'success': False, 'result': f'Instead of 1 object - {obj.count()} object was found'}

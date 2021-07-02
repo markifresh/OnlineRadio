@@ -45,14 +45,17 @@ class Deezer(MSAbstract):
     def delete_requests(self, url, params={}, data={}):
         return self.make_request(method=delete, url=url, params=params)
 
-    def find_track(self, common_name):
-        common_name = common_name.lower()
-        final_result = {}
-        splited = common_name.split('-')
-        artist, track = splited[0], ' - '.join(splited[1:])
+    def find_track(self, track):
+        if isinstance(track, dict):
+            artist, title = track['artist'], track['title']
+        else:
+            common_name = track.lower()
+            splited = common_name.split('-')
+            artist, title = splited[0], ' - '.join(splited[1:])
+
         params = {
             #'q': common_name,
-            'q': f'artist:"{artist}" track:"{track}"',
+            'q': f'artist:"{artist}" track:"{title}"',
             'order': 'RANKING',
             'output': 'json'
         }

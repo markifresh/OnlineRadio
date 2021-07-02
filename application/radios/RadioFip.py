@@ -6,6 +6,8 @@ from concurrent.futures import ThreadPoolExecutor
 from application.workers.ExtraFunc import sort_tracks_list
 from config import APIConfig
 from application import get_data_range
+from application.CustomExceptions import BasicCustomException
+from traceback import format_exception
 
 
 class Fip(RadioAbstract):
@@ -144,6 +146,18 @@ class Fip(RadioAbstract):
 
         track = json_loads(res.text)['data']['live']['song']
 
+        if not track:
+            now = datetime.now()
+            return {'common_name':  'unknown - unknown',
+                    'artist':       'unknown',
+                    'title':        'unknown',
+                    'start_date':   now,
+                    'end_date':     now + timedelta(seconds=30),
+                    'radio_name':   self.radio_id,
+                    'timetoplay':   30,
+                    'spotify':      '',
+                    'deezer':       ''}
+
         start_time = track.get('start', '')
         start_date = datetime.fromtimestamp(start_time)
 
@@ -157,15 +171,15 @@ class Fip(RadioAbstract):
             artist = ','.join(track.get('mainArtists', '')).strip()
             title = track.get('title', '').strip()
             common_name = f'{artist} - {title}'
-            return {'common_name': common_name,
-                    'artist': artist,
-                    'title': title,
-                    'start_date': start_date,
-                    'end_date': end_date,
-                    'radio_name': self.radio_id,
-                    'timetoplay': timetoplay,
-                    'spotify': '',
-                    'deezer': ''}
+            return {'common_name':  common_name,
+                    'artist':       artist,
+                    'title':        title,
+                    'start_date':   start_date,
+                    'end_date':     end_date,
+                    'radio_name':   self.radio_id,
+                    'timetoplay':   timetoplay,
+                    'spotify':      '',
+                    'deezer':       ''}
 
         return {}
 

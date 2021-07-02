@@ -1,7 +1,4 @@
 let carousel = new bootstrap.Carousel(document.getElementById('carouselExampleControls'), {ride: false, interval: false});
-let toast = new bootstrap.Toast(document.getElementById('liveToast'));
-let toastHeader = document.getElementById('toastHeader');
-let toastBody = document.getElementById('toastBody');
 let pageHeader = document.getElementById('pageHeader');
 
 document.addEventListener('click', function(event){
@@ -63,12 +60,15 @@ function showTracks(){
 function showNextSlide(){
   let prevBTN = document.getElementById('carouselPrev');
   let textBTN = document.getElementById('carouselText');
+
 //  If it's not 'Radio' slide
   if (prevBTN.style.display == 'none'){
     carousel.next();
     prevBTN.style.display = '';
     document.querySelector('audio').pause();
     document.querySelector('audio').style.display = 'none';
+    document.querySelector('#player').style.opacity = '0';
+    pauseRadio();
     }
 
 // If it's 'Radio' slide
@@ -82,15 +82,10 @@ function showNextSlide(){
     else{
     prevBTN.style.display = 'none';
     document.querySelector('audio').style.display = '';
+    document.querySelector('#player').style.opacity = '1';
   }
   }
 
-}
-
-function errorToast(data){
-  toastHeader.innerText = 'ERROR';
-  toastBody.innerText = data;
-  toast.show();
 }
 
 function headerMissing(){

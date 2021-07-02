@@ -199,15 +199,23 @@ function playRadio(elemId){
   let radioName = elemId.split('-').pop();
   if(sessionStorage.getItem('playingNow'))
       pauseRadio();
+  document.querySelector('.live_track_radio').id = radioName;
+  document.querySelector('.live_track_radio').innerText = radioName.replaceAll('_', ' ');
+  setLiveData();
   sessionStorage.setItem('playingNow', radioName);
+  sessionStorage.setItem('lastPlayed', radioName);
   audioObj.src = sessionStorage.getItem(radioName);
   audioObj.play();
   document.getElementById('pause-' + radioName).style.display = '';
   document.getElementById('play-' + radioName).style.display = 'none';
   document.getElementById('card-' + radioName).style.cssText = 'rgb(11 0 255 / 9%) !important';
+  document.getElementById('live_pause').style.display = '';
+  document.getElementById('live_play').style.display = 'none';
 }
 
 function pauseRadio(){
+  clearTimeout(sessionStorage.getItem('live_timeout'));
+  clearPlayer();
   audioObj.pause();
   let tmp = audioObj;
   audioObj = document.createElement('audio');
@@ -217,10 +225,11 @@ function pauseRadio(){
 //  audioObj.style.display="none";
   document.body.appendChild(audioObj);
   let radioName = sessionStorage.getItem('playingNow');
+  if(document.getElementById('card-' + radioName)){
   document.getElementById('pause-' + radioName).style.display = 'none';
   document.getElementById('play-' + radioName).style.display = '';
   sessionStorage.removeItem('playingNow');
-  document.getElementById('card-' + radioName).style.cssText = '';
+  document.getElementById('card-' + radioName).style.cssText = '';}
 }
 
 function setRadiosStreams(){
@@ -229,14 +238,66 @@ function setRadiosStreams(){
    .then(data => {
      if(data)
          {
-           for (let i = 0; i < data.length; i++)
+           let radios = '';
+           for (let i = 0; i < data.length; i++){
              sessionStorage.setItem(data[i].name, data[i].stream_url);
+             radios += data[i].name + ',';
+           }
+           sessionStorage.setItem('allRadios', radios);
          }
      });
 }
 setRadiosStreams();
 
+function getRadios() {
+  let radios = sessionStorage.getItem('allRadios').split(',');
+  radios.pop()
+  return radios
+}
 
+function getNextRadio() {
+  let radios = getRadios();
+  if(sessionStorage.getItem('playingNow')){
+    let i = radios.findIndex(element => element==sessionStorage.getItem('playingNow'));
+    if(i == radios.length -1)
+      return radios[0];
+    else
+      return radios[i+1];
+
+  }
+  else if (radios.includes(sessionStorage.getItem('lastPlayed'))){
+    let i = radios.findIndex(element => element==sessionStorage.getItem('lastPlayed'));
+    if(i == radios.length -1)
+      return radios[0];
+    else
+      return radios[i+1];
+  }
+
+  else
+    return radios[0];
+}
+
+function getPrevRadio() {
+  let radios = getRadios();
+  if(sessionStorage.getItem('playingNow')){
+    let i = radios.findIndex(element => element==sessionStorage.getItem('playingNow'));
+    if(i == 0)
+      return radios[radios.length -1];
+    else
+      return radios[i-1];
+
+  }
+  else if (radios.includes(sessionStorage.getItem('lastPlayed'))){
+    let i = radios.findIndex(element => element==sessionStorage.getItem('lastPlayed'));
+    if(i == 0)
+      return radios[radios.length -1];
+    else
+      return radios[i-1];
+  }
+
+  else
+    return radios[0];
+}
 
 ////////////// Live Search ////////////////
 

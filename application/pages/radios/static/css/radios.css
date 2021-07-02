@@ -53,6 +53,19 @@ tbody tr button{
   opacity: 0;
 }
 
+.ball {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;         /* Turns a square into a circle   */
+  background-color: darkgray;  /* Sets color to Orange           */
+  margin-top: 10px;
+}
+
+.time-line{
+  margin-top: -7px;
+  margin-bottom: 5px;
+}
+
 .export-animation{
   transition: all 1.5s;
   transform: rotateY(180deg);
@@ -76,6 +89,19 @@ tbody tr button{
 /* tr button {
   margin-right: 5px;
 } */
+#live_prev:hover svg path{
+  fill: antiquewhite;
+}
+#live_play:hover svg path{
+  fill: antiquewhite;
+}
+#live_pause:hover svg path{
+  fill: antiquewhite;
+}
+#live_next:hover svg path{
+  fill: antiquewhite;
+}
+
 .track-like:hover svg path{
   fill: brown;
 }
