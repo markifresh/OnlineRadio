@@ -144,7 +144,10 @@ class UserImportTracks(Resource):
         import_date = validators.validate_date(import_date)
         validators.validate_user(account_id)
         current_user = user.User.get_user(account_id)
-        user_liked_tracks = [int(cur_track) for cur_track in current_user.liked_tracks.split(',')]
+        if current_user.liked_tracks:
+            user_liked_tracks = [int(cur_track) for cur_track in current_user.liked_tracks.split(',')]
+        else:
+            user_liked_tracks = []
         import_tracks = tracks_import.TracksImport.get_import_tracks(import_date, current_user.service_name)
         for import_track in import_tracks:
             if import_track.id in user_liked_tracks:

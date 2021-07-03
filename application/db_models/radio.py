@@ -575,11 +575,9 @@ class  Radio(BaseExtended):
                 return ti.commit_data(data)
 
             else:
-                tracks_string = ''
                 tracks = track_db.Track.query(track_db.Track.id).filter(
                     track_db.Track.play_date.between(start_date, end_date))
-                for track in tracks:
-                    tracks_string += str(track[0]) + ','
+                tracks_string = ",".join([str(track[0]) for track in tracks])
 
                 data = {
                     'import_date': start_time,

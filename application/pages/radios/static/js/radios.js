@@ -69,6 +69,10 @@ document.getElementById('live_next').addEventListener('click', function(event){
   playRadio(getNextRadio());
 });
 
+document.getElementById('volume').addEventListener('input', function(event) {
+  document.querySelector('audio').volume = event.target.value;
+});
+
 // Like Player
 document.getElementById('live_like').addEventListener('click', function(event){
   let trackID = document.querySelector('.live-track').id;
@@ -102,7 +106,15 @@ function deleteTrackFromLiked(trackID) {
 document.getElementById('carTracks').addEventListener('click', function(event){
 // Show Embed and Play
   if(event.target.classList.contains('track-play')){
+    let alreadyOpened = document.querySelector('.flip');
     let btn = findBTN(event.target);
+    if(alreadyOpened && !btn.classList.contains('flip')){
+      alreadyOpened.classList.toggle('flip');
+      let elem = alreadyOpened.parentElement.parentElement;
+        hideElem(elem.children[1]);
+        toggleEmbed(elem, width="300");
+    }
+
     btn.classList.toggle('flip');
     let elem = btn.parentElement.parentElement;
       hideElem(elem.children[1]);

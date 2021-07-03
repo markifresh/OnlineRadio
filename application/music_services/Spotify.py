@@ -78,12 +78,17 @@ class Spotify(MSAbstract):
 
         return {'success': res.status_code in (200, 201), 'result': json_loads(res.text), 'headers': dict(res.headers)}
 
-    def put_requests(self, url, data):
+    def put_requests(self, url, data={}, params={}):
         self.check_token()
         result = {}
-        res = put(url, headers=self.oath_headers, json=data)
+        if params:
+            params = urlencode(params, quote_via=quote)
+            res = put(url, headers=self.oath_headers, params=params)
+        else:
+            res = put(url, headers=self.oath_headers, json=data)
 
-        return {'success': res.status_code in (200, 201), 'result': json_loads(res.text), 'headers': dict(res.headers)}
+        result = json_loads(res.text) if res.text else ""
+        return {'success': res.status_code in (200, 201), 'result': result, 'headers': dict(res.headers)}
 
     # def find_track(self, track_name):
     #     artist, title = track_name.split('-')
@@ -295,6 +300,14 @@ class Spotify(MSAbstract):
             res['success'] = False
 
         return res
+
+    def add_ids_to_liked(self, tracks_ids):
+        if not isinstance(tracks_ids, list):
+            tracks_ids = [tracks_ids]
+        url = self.api_url + 'me/tracks'
+        params = {'ids': ','.join(tracks_ids)}
+        return self.put_requests(url, params=params)
+
 
     def add_tracks_by_ids_to_playlist(self, playlist, tracks_ids):
         result = []

@@ -33,6 +33,9 @@ users_settings = [
 
                    {'option_name': 'auto_liked',
                    'description': 'Automatically add liked tracks to your Music Service'},
+
+                   {'option_name': 'playlist per import',
+                    'description': 'To save each import as new playlist (not grouped by radio)'}
                 ]
 
 def config_class_to_dict(confClass):
@@ -120,7 +123,8 @@ class SpotifyConfig(MusicService):
     SPOTIFY_USER_ACC_LINK = "https://open.spotify.com/user"
     SPOTIFY_API_VERSION = "v1"
     SPOTIFY_API_URL = f"{SPOTIFY_API_BASE_URL}/{SPOTIFY_API_VERSION}/"
-    SCOPE = "playlist-modify-public playlist-modify-private playlist-read-private"
+    SCOPE_LIST = ["playlist-modify-public", "playlist-modify-private", "playlist-read-private", "user-library-modify"]
+    SCOPE = " ".join(SCOPE_LIST)
     CLIENT_ID = APIConfig.spotify_api_id
     CLIENT_KEY = APIConfig.spotify_api_key
     PLAYLISTS_REQUEST_LIMIT = 50

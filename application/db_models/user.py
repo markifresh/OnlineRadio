@@ -83,7 +83,7 @@ class User(UserMixin, BaseExtended):
         user = cls.get_user(account_id)
         if not user.radios:
             return []
-        radios_list = user.radios[:-1].split(',')
+        radios_list = user.radios.split(',')
         #return radio.Radio.get_radios_by_name(radios_list)
         return radio.Radio.query(radio.Radio).filter(radio.Radio.name.in_(radios_list)).all()
 
@@ -411,10 +411,7 @@ class User(UserMixin, BaseExtended):
             raise BasicCustomException(f'radio "{radio_name}" already in user radios')
 
         radios.append(radio_name)
-        radios_str = ''
-        for radio_str in radios:
-            radios_str += radio_str + ','
-
+        radios_str = ','.join([radio_name for radio_name in radios])
         result = cls.update_row({'radios': radios_str, 'account_id': account_id})
         result['radio_name'] = radio_name
 
@@ -428,9 +425,7 @@ class User(UserMixin, BaseExtended):
             raise BasicCustomException(f'radio "{radio_name}" not in user radios')
 
         radios.remove(radio_name)
-        radios_str = ''
-        for radio_str in radios:
-            radios_str += radio_str + ','
+        radios_str = ','.join([radio_name for radio_name in radios])
         result = cls.update_row({'radios': radios_str, 'account_id': account_id})
         result['radio_name'] = radio_name
         return result
@@ -441,7 +436,7 @@ class User(UserMixin, BaseExtended):
         if not settings:
             return []
         else:
-            return settings[:-1].split(',')
+            return settings.split(',')
 
     @classmethod
     def add_user_setting(cls, account_id, setting):
@@ -451,10 +446,7 @@ class User(UserMixin, BaseExtended):
             raise BasicCustomException(f'setting "{setting}" already in user settings')
 
         user_settings.append(setting)
-        settings_str = ''
-        for user_setting in user_settings:
-            settings_str += user_setting + ','
-
+        settings_str = ','.join([user_setting for user_setting in user_settings])
         result = cls.update_row({'settings': settings_str, 'account_id': account_id})
         result['setting'] = setting
         return result
@@ -467,10 +459,7 @@ class User(UserMixin, BaseExtended):
             raise BasicCustomException(f'setting "{setting}" not in user settings')
 
         user_settings.remove(setting)
-        settings_str = ''
-        for user_setting in user_settings:
-            settings_str += user_setting + ','
-
+        settings_str = ','.join([user_setting for user_setting in user_settings])
         result = cls.update_row({'settings': settings_str, 'account_id': account_id})
         result['setting'] = setting
         return result

@@ -6,6 +6,7 @@ from requests import get, post, delete
 from urllib.parse import urlencode, quote
 from json import loads as json_loads
 from datetime import datetime, timedelta
+from application.CustomExceptions import BasicCustomException
 
 
 class Deezer(MSAbstract):
@@ -202,6 +203,21 @@ class Deezer(MSAbstract):
 
         success = [res['success'] for res in result]
         return {'success': False not in success, 'result': result}
+
+    def add_ids_to_liked(self, tracks_ids):
+        playlists = self.get_user_playlists()
+        if not playlists['success']:
+            raise BasicCustomException('No user playlists')
+
+        liked_songs_playlist = {}
+        for playlist in playlists['result']:
+            if playlist['is_loved_track']:
+                liked_songs_playlist = playlist
+
+        if not liked_songs_playlist:
+            raise BasicCustomException('Failed to find playlists with liked songs')
+
+        return self.add_tracks_by_ids_to_playlist(liked_songs_playlist, tracks_ids)
 
 
     def add_track_to_playlist(self, playlist_id, track_id):

@@ -68,9 +68,9 @@ class MSAbstract(ABC):
     def get_user_playlist_by_name(self, playlist_name):
         pass
 
-    # @abstractmethod
-    # def get_user_playlist_liked(self):
-    #     pass
+    @abstractmethod
+    def add_ids_to_liked(self, tracks_ids):
+        pass
 
     @abstractmethod
     def get_playlist_tracks(self, playlist_id):
