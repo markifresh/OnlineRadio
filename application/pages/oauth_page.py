@@ -20,7 +20,6 @@ def set_cookies():
     resp = make_response(redirect(url_for('oauth.auth')))
     resp.set_cookie('user_id', session['ms_user']['id'])
     resp.set_cookie('ms_service', session['ms_service'])
-    print(session)
     return resp
 
 

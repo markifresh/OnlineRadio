@@ -56,8 +56,8 @@ tbody tr button{
 .ball {
   width: 11px;
   height: 11px;
-  border-radius: 50%;         /* Turns a square into a circle   */
-  background-color: darkgray;  /* Sets color to Orange           */
+  border-radius: 50%;
+  background-color: darkgray;
   margin-top: 10px;
 }
 
@@ -68,37 +68,37 @@ tbody tr button{
 
 #volume{
   padding: 0;
-  -webkit-appearance: none;  /* Override default CSS styles */
+  -webkit-appearance: none;
   appearance: none;
-  width: 100%; /* Full-width */
-  height: 1px; /* Specified height */
-  background: dimgray; /* Grey background */
-  outline: none; /* Remove outline */
-  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
-  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  width: 100%;
+  height: 1px;
+  background: dimgray;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
   transition: opacity .2s;
 }
 
 #volume::-webkit-slider-thumb {
-  -webkit-appearance: none; /* Override default look */
+  -webkit-appearance: none;
   appearance: none;
   border-radius: 5px;
-  width: 10px; /* Set a specific slider handle width */
-  height: 10px; /* Slider handle height */
-  background: darkgray; /* Green background */
-  cursor: pointer; /* Cursor on hover */
+  width: 10px;
+  height: 10px;
+  background: darkgray;
+  cursor: pointer;
 }
 
 #volume::-moz-range-thumb {
   border-radius: 5px;
-  width: 10px; /* Set a specific slider handle width */
-  height: 10px; /* Slider handle height */
-  background: darkgray; /* Green background */
-  cursor: pointer; /* Cursor on hover */
+  width: 10px;
+  height: 10px;
+  background: darkgray;
+  cursor: pointer;
 }
 
 #volume:hover {
-  opacity: 1; /* Fully shown on mouse-over */
+  opacity: 1;
 }
 
 .export-animation{
